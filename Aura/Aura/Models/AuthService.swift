@@ -4,7 +4,6 @@
 //
 //  Created by Margot Pasquali on 11/07/2024.
 //
-
 import Foundation
 
 struct AuthenticationRequest: Encodable {
@@ -21,8 +20,8 @@ class AuthService {
     static var shared = AuthService()
     private init() {}
     
-    private static let url = URL(string: "http://127.0.0.1:8080/")!
-    private static let token = "FB24D136-C228-491D-AB30-FDFD97009D19"
+    private static let baseURL = URL(string: "http://127.0.0.1:8080/")!
+    private static var token: String?
     
     private var task: URLSessionDataTask?
     private var authSession = URLSession(configuration: .default)
@@ -31,50 +30,17 @@ class AuthService {
         self.authSession = authSession
     }
     
-    func logAccount(completionHandler: @escaping (Data?) -> Void) {
-        var request = URLRequest(url: AuthService.url)
-        request.httpMethod = "GET"
-        
-        let body = "account"
-        request.httpBody = body.data(using: .utf8)
-        
-        request.setValue(AuthService.token, forHTTPHeaderField: "token")
-        
-        task?.cancel()
-        task = authSession.dataTask(with: request) { data, response, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    print("Error: \(error.localizedDescription)")
-                    completionHandler(nil)
-                    return
-                }
-                guard let data = data else {
-                    print("Error: No data received")
-                    completionHandler(nil)
-                    return
-                }
-                guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
-                    print("Error: Invalid reponse status code \((response as? HTTPURLResponse)?.statusCode ?? 0)")
-                    completionHandler(nil)
-                    return
-                }
-                completionHandler(data)
-            }
-        }
-        task?.resume()
-    }
-
-    func getAuth(completionHandler: @escaping (Data?) -> Void) {
-        var request = URLRequest(url: AuthService.url)
+    func getAuth(username: String, password: String, completionHandler: @escaping (Data?, Error?) -> Void) {
+        var request = URLRequest(url: AuthService.baseURL.appendingPathComponent("auth"))
         request.httpMethod = "POST"
         
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        let emailAndPassword = AuthenticationRequest(username: "test@aura.app", password: "test123")
+        let emailAndPassword = AuthenticationRequest(username: username, password: password)
         do {
             request.httpBody = try JSONEncoder().encode(emailAndPassword)
         } catch {
             print("Failed to encode JSON: \(error.localizedDescription)")
-            completionHandler(nil)
+            completionHandler(nil, error)
             return
         }
         
@@ -82,39 +48,95 @@ class AuthService {
         task = authSession.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
                 if let error = error {
-                    print("Error: \(error.localizedDescription)")
-                    completionHandler(nil)
+                    print("Error in getAuth: \(error.localizedDescription)")
+                    completionHandler(nil, error)
                     return
                 }
                 guard let data = data else {
-                    print("Error: No data received")
-                    completionHandler(nil)
+                    print("Error in getAuth: No data received")
+                    completionHandler(nil, NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "No data received"]))
                     return
                 }
                 guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
-                    print("Error: Invalid response status code \((response as? HTTPURLResponse)?.statusCode ?? 0)")
-                    completionHandler(nil)
+                    print("Error in getAuth: Invalid response status code \((response as? HTTPURLResponse)?.statusCode ?? 0)")
+                    completionHandler(nil, NSError(domain: "", code: (response as? HTTPURLResponse)?.statusCode ?? 0, userInfo: [NSLocalizedDescriptionKey: "Invalid response status code"]))
                     return
                 }
-                completionHandler(data)
+                
+                do {
+                    if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                       let keytoken = json["token"] as? String {
+                        AuthService.token = keytoken
+                        print("Token received: \(keytoken)") // Debug: Print token
+                        completionHandler(data, nil)
+                    } else {
+                        completionHandler(nil, NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid token received"]))
+                    }
+                } catch {
+                    completionHandler(nil, error)
+                }
             }
         }
         task?.resume()
     }
     
-    func createTransfer(completionHandler: @escaping (Data?) -> Void) {
-        var request = URLRequest(url: AuthService.url)
+    func logAccount(completionHandler: @escaping (Data?, Error?) -> Void) {
+        guard let token = AuthService.token else {
+            print("Error in logAccount: No token available")
+            completionHandler(nil, NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "No token available"]))
+            return
+        }
+        
+        var request = URLRequest(url: AuthService.baseURL.appendingPathComponent("account"))
+        request.httpMethod = "GET"
+        
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(token, forHTTPHeaderField: "token")
+        
+        task?.cancel()
+        task = authSession.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("Error in logAccount: \(error.localizedDescription)")
+                    completionHandler(nil, error)
+                    return
+                }
+                guard let data = data else {
+                    print("Error in logAccount: No data received")
+                    completionHandler(nil, NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "No data received"]))
+                    return
+                }
+                guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
+                    print("Error in logAccount: Invalid response status code \((response as? HTTPURLResponse)?.statusCode ?? 0)")
+                    completionHandler(nil, NSError(domain: "", code: (response as? HTTPURLResponse)?.statusCode ?? 0, userInfo: [NSLocalizedDescriptionKey: "Invalid response status code"]))
+                    return
+                }
+                print("logAccount successful with data: \(data)") // Debug: Print success
+                completionHandler(data, nil)
+            }
+        }
+        task?.resume()
+    }
+    
+    func createTransfer(recipient: String, amount: Float, completionHandler: @escaping (Data?, Error?) -> Void) {
+        guard let token = AuthService.token else {
+            print("Error in createTransfer: No token available")
+            completionHandler(nil, NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "No token available"]))
+            return
+        }
+
+        var request = URLRequest(url: AuthService.baseURL.appendingPathComponent("transfer"))
         request.httpMethod = "POST"
         
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(AuthService.token, forHTTPHeaderField: "token")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         
-        let transferinformation = TransferInformation(recipient: "+33 6 01 02 03 04", amount: 12.4)
+        let transferInformation = TransferInformation(recipient: recipient, amount: amount)
         do {
-            request.httpBody = try JSONEncoder().encode(transferinformation)
+            request.httpBody = try JSONEncoder().encode(transferInformation)
         } catch {
             print("Failed to encode JSON: \(error.localizedDescription)")
-            completionHandler(nil)
+            completionHandler(nil, error)
             return
         }
         
@@ -122,21 +144,21 @@ class AuthService {
         task = authSession.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
                 if let error = error {
-                    print("Error: \(error.localizedDescription)")
-                    completionHandler(nil)
+                    print("Error in createTransfer: \(error.localizedDescription)")
+                    completionHandler(nil, error)
                     return
                 }
                 guard let data = data else {
-                    print("Error: No data received")
-                    completionHandler(nil)
+                    print("Error in createTransfer: No data received")
+                    completionHandler(nil, NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "No data received"]))
                     return
                 }
                 guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
-                    print("Error: Invalid response status code \((response as? HTTPURLResponse)?.statusCode ?? 0)")
-                    completionHandler(nil)
+                    print("Error in createTransfer: Invalid response status code \((response as? HTTPURLResponse)?.statusCode ?? 0)")
+                    completionHandler(nil, NSError(domain: "", code: (response as? HTTPURLResponse)?.statusCode ?? 0, userInfo: [NSLocalizedDescriptionKey: "Invalid response status code"]))
                     return
                 }
-                completionHandler(data)
+                completionHandler(data, nil)
             }
         }
         task?.resume()
