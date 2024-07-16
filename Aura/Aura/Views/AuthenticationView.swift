@@ -49,7 +49,12 @@ struct AuthenticationView: View {
                     .background(Color(UIColor.secondarySystemBackground))
                     .cornerRadius(8)
                 
-                
+                if let errorMessage = viewModel.errorMessage {
+                                    Text(errorMessage)
+                                        .foregroundColor(.red)
+                                        .multilineTextAlignment(.center)
+                                        .padding()
+                                }
                 Button(action: {
                     // Handle authentication logic here
                     viewModel.login()
@@ -77,10 +82,10 @@ struct AuthenticationView: View {
             }
         }
     }
-    }
     
-    #Preview {
-        AuthenticationView(viewModel: AuthenticationViewModel({
-            
-        }))
-    }
+}
+#Preview {
+    AuthenticationView(viewModel: AuthenticationViewModel({
+        
+    }))
+}

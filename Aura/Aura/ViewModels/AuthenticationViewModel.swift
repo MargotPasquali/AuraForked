@@ -22,7 +22,32 @@ class AuthenticationViewModel: ObservableObject {
         self.onLoginSucceed = callback
     }
     
+    static func validateEmail(_ email: String) -> Bool {
+        let emailRegEx = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
+        let emailTest = NSPredicate(format: "SELF MATCHES %@", emailRegEx)
+        let range = NSRange(location: 0, length: email.utf16.count)
+        let regex = try! NSRegularExpression(pattern: emailRegEx)
+        
+        // Check if the email matches the regex
+        let match = regex.firstMatch(in: email, options: [], range: range)
+        
+        // Ensure no consecutive dots are present
+        if match != nil && !email.contains("..") {
+            return true
+        } else {
+            return false
+        }
+    }
+    
     func login() {
+        print("Trying to login with username: \(username) and password: \(password)") // Debug
+        
+        guard AuthenticationViewModel.validateEmail(username) else {
+            errorMessage = "Invalid email address"
+            print("Invalid email address") // Debug
+            return
+        }
+        
         isLoading = true
         errorMessage = nil
 
