@@ -8,15 +8,26 @@
 import Foundation
 
 class AccountDetailViewModel: ObservableObject {
-    @Published var totalAmount: String = "€12,345.67"
-    @Published var recentTransactions: [Transaction] = [
-        Transaction(description: "Starbucks", amount: "-€5.50"),
-        Transaction(description: "Amazon Purchase", amount: "-€34.99"),
-        Transaction(description: "Salary", amount: "+€2,500.00")
-    ]
+    @Published var totalAmount: String = ""
+    @Published var recentTransactions: [Transaction] = []
     
-    struct Transaction {
-        let description: String
-        let amount: String
+    init() {
+        fetchAccountDetails()
+    }
+    
+    func fetchAccountDetails() {
+        AuthService.shared.logAccount { [weak self] accountDetail, error in
+            guard let self = self else { return }
+            
+            if let error = error {
+                print("Error fetching account details: \(error.localizedDescription)")
+                return
+            }
+            
+            if let accountDetail = accountDetail {
+                self.totalAmount = "€\(accountDetail.currentBalance)"
+                self.recentTransactions = accountDetail.transactions
+            }
+        }
     }
 }

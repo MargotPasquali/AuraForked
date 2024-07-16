@@ -4,6 +4,7 @@
 //
 //  Created by Margot Pasquali on 11/07/2024.
 //
+
 import Foundation
 
 struct AuthenticationRequest: Encodable {
@@ -53,13 +54,15 @@ class AuthService {
                     return
                 }
                 guard let data = data else {
-                    print("Error in getAuth: No data received")
-                    completionHandler(nil, NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "No data received"]))
+                    let noDataError = NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "No data received"])
+                    print("Error in getAuth: \(noDataError.localizedDescription)")
+                    completionHandler(nil, noDataError)
                     return
                 }
                 guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
-                    print("Error in getAuth: Invalid response status code \((response as? HTTPURLResponse)?.statusCode ?? 0)")
-                    completionHandler(nil, NSError(domain: "", code: (response as? HTTPURLResponse)?.statusCode ?? 0, userInfo: [NSLocalizedDescriptionKey: "Invalid response status code"]))
+                    let statusCodeError = NSError(domain: "", code: (response as? HTTPURLResponse)?.statusCode ?? -1, userInfo: [NSLocalizedDescriptionKey: "Invalid response status code"])
+                    print("Error in getAuth: \(statusCodeError.localizedDescription)")
+                    completionHandler(nil, statusCodeError)
                     return
                 }
                 
@@ -70,9 +73,12 @@ class AuthService {
                         print("Token received: \(keytoken)") // Debug: Print token
                         completionHandler(data, nil)
                     } else {
-                        completionHandler(nil, NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid token received"]))
+                        let invalidTokenError = NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid token received"])
+                        print("Error in getAuth: \(invalidTokenError.localizedDescription)")
+                        completionHandler(nil, invalidTokenError)
                     }
                 } catch {
+                    print("Error in getAuth: \(error.localizedDescription)")
                     completionHandler(nil, error)
                 }
             }
@@ -80,10 +86,11 @@ class AuthService {
         task?.resume()
     }
     
-    func logAccount(completionHandler: @escaping (Data?, Error?) -> Void) {
+    func logAccount(completionHandler: @escaping (AccountDetail?, Error?) -> Void) {
         guard let token = AuthService.token else {
-            print("Error in logAccount: No token available")
-            completionHandler(nil, NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "No token available"]))
+            let noTokenError = NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "No token available"])
+            print("Error in logAccount: \(noTokenError.localizedDescription)")
+            completionHandler(nil, noTokenError)
             return
         }
         
@@ -102,17 +109,30 @@ class AuthService {
                     return
                 }
                 guard let data = data else {
-                    print("Error in logAccount: No data received")
-                    completionHandler(nil, NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "No data received"]))
+                    let noDataError = NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "No data received"])
+                    print("Error in logAccount: \(noDataError.localizedDescription)")
+                    completionHandler(nil, noDataError)
                     return
                 }
                 guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
-                    print("Error in logAccount: Invalid response status code \((response as? HTTPURLResponse)?.statusCode ?? 0)")
-                    completionHandler(nil, NSError(domain: "", code: (response as? HTTPURLResponse)?.statusCode ?? 0, userInfo: [NSLocalizedDescriptionKey: "Invalid response status code"]))
+                    let statusCodeError = NSError(domain: "", code: (response as? HTTPURLResponse)?.statusCode ?? -1, userInfo: [NSLocalizedDescriptionKey: "Invalid response status code"])
+                    print("Error in logAccount: \(statusCodeError.localizedDescription)")
+                    completionHandler(nil, statusCodeError)
                     return
                 }
-                print("logAccount successful with data: \(data)") // Debug: Print success
-                completionHandler(data, nil)
+                
+                do {
+                    // Ajout de l'impression des données brutes reçues
+                    let jsonString = String(data: data, encoding: .utf8)
+                    print("Raw JSON data received: \(jsonString ?? "nil")")
+                    
+                    let accountDetail = try JSONDecoder().decode(AccountDetail.self, from: data)
+                    print("logAccount successful with account detail: \(accountDetail)") // Debug: Print account detail
+                    completionHandler(accountDetail, nil)
+                } catch {
+                    print("Error in logAccount: \(error.localizedDescription)")
+                    completionHandler(nil, error)
+                }
             }
         }
         task?.resume()
@@ -120,8 +140,9 @@ class AuthService {
     
     func createTransfer(recipient: String, amount: Float, completionHandler: @escaping (Data?, Error?) -> Void) {
         guard let token = AuthService.token else {
-            print("Error in createTransfer: No token available")
-            completionHandler(nil, NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "No token available"]))
+            let noTokenError = NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "No token available"])
+            print("Error in createTransfer: \(noTokenError.localizedDescription)")
+            completionHandler(nil, noTokenError)
             return
         }
 
@@ -149,13 +170,15 @@ class AuthService {
                     return
                 }
                 guard let data = data else {
-                    print("Error in createTransfer: No data received")
-                    completionHandler(nil, NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "No data received"]))
+                    let noDataError = NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "No data received"])
+                    print("Error in createTransfer: \(noDataError.localizedDescription)")
+                    completionHandler(nil, noDataError)
                     return
                 }
                 guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
-                    print("Error in createTransfer: Invalid response status code \((response as? HTTPURLResponse)?.statusCode ?? 0)")
-                    completionHandler(nil, NSError(domain: "", code: (response as? HTTPURLResponse)?.statusCode ?? 0, userInfo: [NSLocalizedDescriptionKey: "Invalid response status code"]))
+                    let statusCodeError = NSError(domain: "", code: (response as? HTTPURLResponse)?.statusCode ?? -1, userInfo: [NSLocalizedDescriptionKey: "Invalid response status code"])
+                    print("Error in createTransfer: \(statusCodeError.localizedDescription)")
+                    completionHandler(nil, statusCodeError)
                     return
                 }
                 completionHandler(data, nil)

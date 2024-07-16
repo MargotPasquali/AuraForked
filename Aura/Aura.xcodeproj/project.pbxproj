@@ -24,6 +24,8 @@
 		AE9DB6812C456CC200CCD719 /* Auth.json in Resources */ = {isa = PBXBuildFile; fileRef = AE9DB6802C456CC200CCD719 /* Auth.json */; };
 		AE9DB6832C456D0800CCD719 /* FakeResponseData.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9DB6822C456D0800CCD719 /* FakeResponseData.swift */; };
 		AE9DB6852C45703C00CCD719 /* URLSessionFake.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9DB6842C45703C00CCD719 /* URLSessionFake.swift */; };
+		AE9DB6872C46C64700CCD719 /* Transaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9DB6862C46C64700CCD719 /* Transaction.swift */; };
+		AE9DB6892C46D20C00CCD719 /* AllTransactionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9DB6882C46D20C00CCD719 /* AllTransactionsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -56,6 +58,8 @@
 		AE9DB6802C456CC200CCD719 /* Auth.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Auth.json; sourceTree = "<group>"; };
 		AE9DB6822C456D0800CCD719 /* FakeResponseData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FakeResponseData.swift; sourceTree = "<group>"; };
 		AE9DB6842C45703C00CCD719 /* URLSessionFake.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLSessionFake.swift; sourceTree = "<group>"; };
+		AE9DB6862C46C64700CCD719 /* Transaction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transaction.swift; sourceTree = "<group>"; };
+		AE9DB6882C46D20C00CCD719 /* AllTransactionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllTransactionsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -122,6 +126,7 @@
 				53D418902AC70A920070ADB1 /* AuthenticationView.swift */,
 				53D418922AC70AB10070ADB1 /* AccountDetailView.swift */,
 				53D418942AC70ABF0070ADB1 /* MoneyTransferView.swift */,
+				AE9DB6882C46D20C00CCD719 /* AllTransactionsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -150,6 +155,7 @@
 			isa = PBXGroup;
 			children = (
 				AE9DB6712C40114500CCD719 /* AuthService.swift */,
+				AE9DB6862C46C64700CCD719 /* Transaction.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -268,9 +274,11 @@
 			files = (
 				53D4187C2AC7099A0070ADB1 /* AuraApp.swift in Sources */,
 				53D418952AC70ABF0070ADB1 /* MoneyTransferView.swift in Sources */,
+				AE9DB6872C46C64700CCD719 /* Transaction.swift in Sources */,
 				53D4189B2AC711990070ADB1 /* AuthenticationViewModel.swift in Sources */,
 				53D4189D2AC715AA0070ADB1 /* AccountDetailViewModel.swift in Sources */,
 				53D418912AC70A920070ADB1 /* AuthenticationView.swift in Sources */,
+				AE9DB6892C46D20C00CCD719 /* AllTransactionsView.swift in Sources */,
 				AE9DB6722C40114500CCD719 /* AuthService.swift in Sources */,
 				53D418932AC70AB10070ADB1 /* AccountDetailView.swift in Sources */,
 				53D4189F2AC717890070ADB1 /* MoneyTransferViewModel.swift in Sources */,
