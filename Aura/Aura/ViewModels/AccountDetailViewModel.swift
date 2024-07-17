@@ -16,7 +16,7 @@ class AccountDetailViewModel: ObservableObject {
     }
     
     func fetchAccountDetails() {
-        AuthService.shared.logAccount { [weak self] accountDetail, error in
+        AuthService.shared.logAccount { [weak self] (accountDetail: AccountDetail?, error: Error?) in
             guard let self = self else { return }
             
             if let error = error {
@@ -25,7 +25,7 @@ class AccountDetailViewModel: ObservableObject {
             }
             
             if let accountDetail = accountDetail {
-                self.totalAmount = "€\(accountDetail.currentBalance)"
+                self.totalAmount = String(format: "€%.2f", accountDetail.currentBalance)
                 self.recentTransactions = accountDetail.transactions
             }
         }

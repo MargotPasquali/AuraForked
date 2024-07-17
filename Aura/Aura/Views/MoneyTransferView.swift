@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct MoneyTransferView: View {
-    @ObservedObject var viewModel = MoneyTransferViewModel()
+    @ObservedObject var viewModel = MoneyTransferViewModel(accountDetailViewModel: AccountDetailViewModel())
 
         @State private var animationScale: CGFloat = 1.0
 

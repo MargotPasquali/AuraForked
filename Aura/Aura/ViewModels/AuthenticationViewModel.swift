@@ -17,11 +17,11 @@ class AuthenticationViewModel: ObservableObject {
     @Published var destinationView: AnyView? = nil
     
     let onLoginSucceed: (() -> ())
-    
+
     init(_ callback: @escaping () -> ()) {
         self.onLoginSucceed = callback
     }
-    
+
     static func validateEmail(_ email: String) -> Bool {
         let emailRegEx = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
         let emailTest = NSPredicate(format: "SELF MATCHES %@", emailRegEx)
@@ -38,7 +38,7 @@ class AuthenticationViewModel: ObservableObject {
             return false
         }
     }
-    
+
     func login() {
         print("Trying to login with username: \(username) and password: \(password)") // Debug
         
@@ -51,7 +51,7 @@ class AuthenticationViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
 
-        AuthService.shared.getAuth(username: username, password: password) { [weak self] data, error in
+        AuthService.shared.getAuth(username: username, password: password) { [weak self] (data: Data?, error: Error?) in
             guard let self = self else { return }
             
             if let error = error {
@@ -69,7 +69,7 @@ class AuthenticationViewModel: ObservableObject {
             }
 
             // Maintenant que nous avons obtenu le token, nous appelons logAccount
-            AuthService.shared.logAccount { [weak self] data, error in
+            AuthService.shared.logAccount { [weak self] (accountDetail: AccountDetail?, error: Error?) in
                 guard let self = self else { return }
                 
                 self.isLoading = false
@@ -80,7 +80,7 @@ class AuthenticationViewModel: ObservableObject {
                     return
                 }
 
-                if let data = data {
+                if let accountDetail = accountDetail {
                     // Si logAccount réussit, nous considérons l'utilisateur comme authentifié
                     self.isAuthenticated = true
                     print("Authentication successful") // Debug
