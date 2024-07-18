@@ -7,13 +7,12 @@
 
 import Foundation
 
-struct AccountDetail: Decodable {
+struct AccountDetail: Codable {
     let currentBalance: Double
     let transactions: [Transaction]
 }
 
-struct Transaction: Decodable, Identifiable {
-    let id = UUID()
+struct Transaction: Codable {
     let label: String
     let value: Double
 }

@@ -1,0 +1,9 @@
+{
+    "currentBalance": 5459.32,
+    "transactions": [
+        {"label": "IKEA", "value": -56.4},
+        {"label": "Starbucks", "value": -10},
+        {"label": "Pole Emploi", "value": 1400}
+    ]
+}
+

@@ -16,9 +16,11 @@ class AuthenticationViewModel: ObservableObject {
     @Published var isAuthenticated: Bool = false
     @Published var destinationView: AnyView? = nil
     
-    let onLoginSucceed: (() -> ())
-
-    init(_ callback: @escaping () -> ()) {
+    var onLoginSucceed: (() -> ())
+    var authService: AuthService
+    
+    init(authService: AuthService = AuthService.shared, callback: @escaping () -> () = {}) {
+        self.authService = authService
         self.onLoginSucceed = callback
     }
 
@@ -51,7 +53,7 @@ class AuthenticationViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
 
-        AuthService.shared.getAuth(username: username, password: password) { [weak self] (data: Data?, error: Error?) in
+        authService.getAuth(username: username, password: password) { [weak self] data, error in
             guard let self = self else { return }
             
             if let error = error {
@@ -69,7 +71,7 @@ class AuthenticationViewModel: ObservableObject {
             }
 
             // Maintenant que nous avons obtenu le token, nous appelons logAccount
-            AuthService.shared.logAccount { [weak self] (accountDetail: AccountDetail?, error: Error?) in
+            self.authService.logAccount { [weak self] (accountDetail: AccountDetail?, error: Error?) in
                 guard let self = self else { return }
                 
                 self.isLoading = false

@@ -26,6 +26,9 @@
 		AE9DB6852C45703C00CCD719 /* URLSessionFake.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9DB6842C45703C00CCD719 /* URLSessionFake.swift */; };
 		AE9DB6872C46C64700CCD719 /* Transaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9DB6862C46C64700CCD719 /* Transaction.swift */; };
 		AE9DB6892C46D20C00CCD719 /* AllTransactionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9DB6882C46D20C00CCD719 /* AllTransactionsView.swift */; };
+		AE9DB6902C480B3400CCD719 /* AuthenticationViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9DB68F2C480B3400CCD719 /* AuthenticationViewModelTests.swift */; };
+		AE9DB6922C48185400CCD719 /* AuthServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9DB6912C48185400CCD719 /* AuthServiceTests.swift */; };
+		AE9DB6942C481BD400CCD719 /* AccountDetail.json in Resources */ = {isa = PBXBuildFile; fileRef = AE9DB6932C481BD400CCD719 /* AccountDetail.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -60,6 +63,9 @@
 		AE9DB6842C45703C00CCD719 /* URLSessionFake.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLSessionFake.swift; sourceTree = "<group>"; };
 		AE9DB6862C46C64700CCD719 /* Transaction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transaction.swift; sourceTree = "<group>"; };
 		AE9DB6882C46D20C00CCD719 /* AllTransactionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllTransactionsView.swift; sourceTree = "<group>"; };
+		AE9DB68F2C480B3400CCD719 /* AuthenticationViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationViewModelTests.swift; sourceTree = "<group>"; };
+		AE9DB6912C48185400CCD719 /* AuthServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthServiceTests.swift; sourceTree = "<group>"; };
+		AE9DB6932C481BD400CCD719 /* AccountDetail.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = AccountDetail.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -163,13 +169,10 @@
 		AE9DB6782C45693000CCD719 /* AuraTests */ = {
 			isa = PBXGroup;
 			children = (
+				AE9DB6792C45693000CCD719 /* AuraTests.swift */,
 				AE9DB68C2C480A1F00CCD719 /* TestUtilities */,
 				AE9DB68B2C480A1400CCD719 /* ServiceTests */,
 				AE9DB68A2C480A0900CCD719 /* ViewModelTests */,
-				AE9DB6792C45693000CCD719 /* AuraTests.swift */,
-				AE9DB6802C456CC200CCD719 /* Auth.json */,
-				AE9DB6822C456D0800CCD719 /* FakeResponseData.swift */,
-				AE9DB6842C45703C00CCD719 /* URLSessionFake.swift */,
 			);
 			path = AuraTests;
 			sourceTree = "<group>";
@@ -177,6 +180,7 @@
 		AE9DB68A2C480A0900CCD719 /* ViewModelTests */ = {
 			isa = PBXGroup;
 			children = (
+				AE9DB68F2C480B3400CCD719 /* AuthenticationViewModelTests.swift */,
 			);
 			path = ViewModelTests;
 			sourceTree = "<group>";
@@ -184,6 +188,7 @@
 		AE9DB68B2C480A1400CCD719 /* ServiceTests */ = {
 			isa = PBXGroup;
 			children = (
+				AE9DB6912C48185400CCD719 /* AuthServiceTests.swift */,
 			);
 			path = ServiceTests;
 			sourceTree = "<group>";
@@ -191,6 +196,10 @@
 		AE9DB68C2C480A1F00CCD719 /* TestUtilities */ = {
 			isa = PBXGroup;
 			children = (
+				AE9DB6802C456CC200CCD719 /* Auth.json */,
+				AE9DB6932C481BD400CCD719 /* AccountDetail.json */,
+				AE9DB6822C456D0800CCD719 /* FakeResponseData.swift */,
+				AE9DB6842C45703C00CCD719 /* URLSessionFake.swift */,
 			);
 			path = TestUtilities;
 			sourceTree = "<group>";
@@ -285,6 +294,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AE9DB6942C481BD400CCD719 /* AccountDetail.json in Resources */,
 				AE9DB6812C456CC200CCD719 /* Auth.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -316,9 +326,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AE9DB6922C48185400CCD719 /* AuthServiceTests.swift in Sources */,
 				AE9DB67A2C45693000CCD719 /* AuraTests.swift in Sources */,
 				AE9DB6852C45703C00CCD719 /* URLSessionFake.swift in Sources */,
 				AE9DB6832C456D0800CCD719 /* FakeResponseData.swift in Sources */,
+				AE9DB6902C480B3400CCD719 /* AuthenticationViewModelTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

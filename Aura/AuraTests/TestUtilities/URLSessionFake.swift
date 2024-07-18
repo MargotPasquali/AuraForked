@@ -7,7 +7,6 @@
 
 import Foundation
 
-
 class URLSessionFake: URLSession {
     
     var data: Data?
