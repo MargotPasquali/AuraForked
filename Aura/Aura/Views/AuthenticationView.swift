@@ -57,7 +57,9 @@ struct AuthenticationView: View {
                                 }
                 Button(action: {
                     // Handle authentication logic here
-                    viewModel.login()
+                    Task {
+                        await viewModel.login()
+                    }
                 }) {
                     Text("Se connecter")
                         .foregroundColor(.white)
@@ -73,7 +75,7 @@ struct AuthenticationView: View {
             self.endEditing(true)  // This will dismiss the keyboard when tapping outside
         }
         .sheet(isPresented: $showDestination) {
-            viewModel.destinationView
+//            viewModel.destinationView
         }
         .onChange(of: viewModel.isAuthenticated) { isAuthenticated in
             if isAuthenticated {
