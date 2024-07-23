@@ -28,7 +28,6 @@ struct AuraApp: App {
                                 Text("Transfer")
                             }
                     }
-                    
                 } else {
                     AuthenticationView(viewModel: viewModel.authenticationViewModel)
                         .transition(.asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity),

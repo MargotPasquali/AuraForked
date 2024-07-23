@@ -9,18 +9,13 @@ import SwiftUI
 
 struct AuthenticationView: View {
     
-    @State private var username: String = ""
-    @State private var password: String = ""
-    
     let gradientStart = Color(hex: "#94A684").opacity(0.7)
     let gradientEnd = Color(hex: "#94A684").opacity(0.0) // Fades to transparent
     
     @ObservedObject var viewModel: AuthenticationViewModel
-    @StateObject private var coordinator = AuthenticationCoordinator()
     @State private var showDestination = false
     
     var body: some View {
-        
         ZStack {
             // Background gradient
             LinearGradient(gradient: Gradient(colors: [gradientStart, gradientEnd]), startPoint: .top, endPoint: .bottomLeading)
@@ -49,13 +44,13 @@ struct AuthenticationView: View {
                     .background(Color(UIColor.secondarySystemBackground))
                     .cornerRadius(8)
                 
-                if let errorMessage = coordinator.errorMessage {
+                if let errorMessage = viewModel.errorMessage {
                     Text(errorMessage)
                         .foregroundColor(.red)
                         .multilineTextAlignment(.center)
                         .padding()
                 }
-                
+
                 Button(action: {
                     Task {
                         await viewModel.login()
@@ -72,19 +67,7 @@ struct AuthenticationView: View {
             .padding(.horizontal, 40)
         }
         .onTapGesture {
-            self.endEditing(true)  // This will dismiss the keyboard when tapping outside
-        }
-        .sheet(isPresented: $showDestination) {
-            coordinator.destinationView // modal view
-        }
-        .onChange(of: coordinator.isAuthenticated) { isAuthenticated in
-            if isAuthenticated {
-                print("Navigating to destination view") // Debug
-                showDestination = true
-            }
-        }
-        .onAppear {
-            viewModel.delegate = coordinator // Set the delegate
+            endEditing(true)  // This will dismiss the keyboard when tapping outside
         }
     }
 }

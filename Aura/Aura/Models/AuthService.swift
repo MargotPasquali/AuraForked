@@ -112,7 +112,7 @@ class AuthService {
         do {
             request.httpBody = try JSONEncoder().encode(transferInformation)
             
-            let (data, response) = try await urlSession.data(for: request)
+            let (_, response) = try await urlSession.data(for: request)
             
             guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
                 throw AuthServiceError.invalidResponse
