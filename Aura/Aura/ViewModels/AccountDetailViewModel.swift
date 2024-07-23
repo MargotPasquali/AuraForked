@@ -8,7 +8,7 @@
 import Foundation
 
 class AccountDetailViewModel: ObservableObject {
-    @Published var totalAmount: String = ""
+    @Published var totalAmount: Double = 0
     @Published var recentTransactions: [Transaction] = []
     
     var authService: AuthService
@@ -23,8 +23,8 @@ class AccountDetailViewModel: ObservableObject {
     func fetchAccountDetails() async {
         do {
             let accountDetail = try await authService.logAccount()
-            self.totalAmount = String(format: "€%.2f", accountDetail.currentBalance)
-            self.recentTransactions = accountDetail.transactions
+            totalAmount = accountDetail.currentBalance
+            recentTransactions = accountDetail.transactions
         } catch {
             print("Error fetching account details: \(error.localizedDescription)")
         }

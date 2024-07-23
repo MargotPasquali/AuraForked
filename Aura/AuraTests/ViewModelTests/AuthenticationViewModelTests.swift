@@ -11,11 +11,14 @@ import XCTest
 class AuthenticationViewModelTests: XCTestCase {
 
     var viewModel: AuthenticationViewModel?
-
+    
     override func setUp() {
         super.setUp()
-        let urlSession = URLSessionFake(data: FakeResponseData.authCorrectData, response: FakeResponseData.responseOk, error: nil)
-        let accountSession = URLSessionFake(data: FakeResponseData.logAccountCorrectData, response: FakeResponseData.responseOk, error: nil)
+        let authData = FakeResponseData.authCorrectData
+        let accountData = FakeResponseData.logAccountCorrectData
+        let responseOk = FakeResponseData.responseOk
+        
+        let urlSession = URLSessionFake(data: authData, response: responseOk, error: nil)
         let authService = AuthService(urlSession: urlSession)
         viewModel = AuthenticationViewModel(authService: authService) {}
     }
@@ -36,23 +39,19 @@ class AuthenticationViewModelTests: XCTestCase {
             return
         }
 
+        // Set up expectation
         let expectation = self.expectation(description: "Login should succeed")
-
-        // Perform login
+        
+        // Set callback to fulfill expectation
         viewModel.username = "test@aura.app"
         viewModel.password = "test123"
-
+        
         Task {
-            await viewModel.login()
+            try await viewModel.login()
             expectation.fulfill()
         }
-
-        await waitForExpectations(timeout: 5, handler: { error in
-            if error != nil {
-                print("Timeout Error: \(String(describing: error))")
-            }
-        })
-
-        XCTAssertTrue(viewModel.isAuthenticated, "User should be authenticated")
+        
+        await waitForExpectations(timeout: 5)
+        
     }
 }

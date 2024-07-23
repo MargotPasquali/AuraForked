@@ -17,7 +17,7 @@ struct AccountDetailView: View {
             VStack(spacing: 10) {
                 Text("Your Balance")
                     .font(.headline)
-                Text(viewModel.totalAmount)
+                Text(viewModel.totalAmount, format: .currency(code: "EUR"))
                     .font(.system(size: 60, weight: .bold))
                     .foregroundColor(Color(hex: "#94A684")) // Using the green color you provided
                 Image(systemName: "eurosign.circle.fill")

@@ -16,7 +16,6 @@ struct AuthenticationView: View {
     let gradientEnd = Color(hex: "#94A684").opacity(0.0) // Fades to transparent
     
     @ObservedObject var viewModel: AuthenticationViewModel
-    @StateObject private var coordinator = AuthenticationCoordinator()
     @State private var showDestination = false
     
     var body: some View {
@@ -49,7 +48,7 @@ struct AuthenticationView: View {
                     .background(Color(UIColor.secondarySystemBackground))
                     .cornerRadius(8)
                 
-                if let errorMessage = coordinator.errorMessage {
+                if let errorMessage = viewModel.errorMessage {
                     Text(errorMessage)
                         .foregroundColor(.red)
                         .multilineTextAlignment(.center)
@@ -58,7 +57,7 @@ struct AuthenticationView: View {
                 
                 Button(action: {
                     Task {
-                        await viewModel.login()
+                        try await viewModel.login()
                     }
                 }) {
                     Text("Se connecter")
@@ -74,19 +73,9 @@ struct AuthenticationView: View {
         .onTapGesture {
             self.endEditing(true)  // This will dismiss the keyboard when tapping outside
         }
-        .sheet(isPresented: $showDestination) {
-            coordinator.destinationView // modal view
-        }
-        .onChange(of: coordinator.isAuthenticated) { isAuthenticated in
-            if isAuthenticated {
-                print("Navigating to destination view") // Debug
-                showDestination = true
-            }
-        }
-        .onAppear {
-            viewModel.delegate = coordinator // Set the delegate
-        }
+        
     }
+    
 }
 
 #Preview {
