@@ -16,8 +16,8 @@ struct AuthenticationView: View {
     let gradientEnd = Color(hex: "#94A684").opacity(0.0) // Fades to transparent
     
     @ObservedObject var viewModel: AuthenticationViewModel
+    @StateObject private var coordinator = AuthenticationCoordinator()
     @State private var showDestination = false
-    
     
     var body: some View {
         
@@ -49,21 +49,23 @@ struct AuthenticationView: View {
                     .background(Color(UIColor.secondarySystemBackground))
                     .cornerRadius(8)
                 
-                if let errorMessage = viewModel.errorMessage {
-                                    Text(errorMessage)
-                                        .foregroundColor(.red)
-                                        .multilineTextAlignment(.center)
-                                        .padding()
-                                }
+                if let errorMessage = coordinator.errorMessage {
+                    Text(errorMessage)
+                        .foregroundColor(.red)
+                        .multilineTextAlignment(.center)
+                        .padding()
+                }
+                
                 Button(action: {
-                    // Handle authentication logic here
-                    viewModel.login()
+                    Task {
+                        await viewModel.login()
+                    }
                 }) {
                     Text("Se connecter")
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.black) // You can also change this to your pastel green color
+                        .background(Color.black)
                         .cornerRadius(8)
                 }
             }
@@ -73,17 +75,21 @@ struct AuthenticationView: View {
             self.endEditing(true)  // This will dismiss the keyboard when tapping outside
         }
         .sheet(isPresented: $showDestination) {
-            viewModel.destinationView // modal view
+            coordinator.destinationView // modal view
         }
-        .onChange(of: viewModel.isAuthenticated) { isAuthenticated in
+        .onChange(of: coordinator.isAuthenticated) { isAuthenticated in
             if isAuthenticated {
                 print("Navigating to destination view") // Debug
                 showDestination = true
             }
         }
+        .onAppear {
+            viewModel.delegate = coordinator // Set the delegate
+        }
     }
-    
 }
+
 #Preview {
     AuthenticationView(viewModel: AuthenticationViewModel())
 }
+

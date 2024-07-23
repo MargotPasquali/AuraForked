@@ -10,7 +10,7 @@ import SwiftUI
 
 protocol AuthenticationViewModelDelegate: AnyObject {
     func authenticationFailed(message: String)
-    func authenticationSuccessfull()
+    func authenticationSuccessful()
 }
 
 class AuthenticationViewModel: ObservableObject {
@@ -56,6 +56,7 @@ class AuthenticationViewModel: ObservableObject {
         guard AuthenticationViewModel.validateEmail(username) else {
             errorMessage = "Invalid email address"
             print("Invalid email address") // Debug
+            delegate?.authenticationFailed(message: "Invalid email address")
             return
         }
         
@@ -63,22 +64,25 @@ class AuthenticationViewModel: ObservableObject {
         errorMessage = nil
         
         // Authenticate
-        do {
-            try await authService.authenticate(username: username, password: password)
-        } catch {
-            delegate?.authenticationFailed(message: "Authentication failed")
-            return
+        Task {
+            do {
+                try await authService.authenticate(username: username, password: password)
+            } catch {
+                delegate?.authenticationFailed(message: "Authentication failed")
+                return
+            }
         }
         
         // Retrieve account details
-        do {
-            let accountDetails = try await authService.logAccount()
-        } catch {
-            delegate?.authenticationFailed(message: "Failed to retrieve account details")
-            return
-        }
-        
-        isAuthenticated = true
-        delegate?.authenticationSuccessfull()
-    }
+        Task {
+            do {
+                let accountDetails = try await authService.logAccount()
+                isAuthenticated = true
+                delegate?.authenticationSuccessful()
+            } catch {
+                delegate?.authenticationFailed(message: "Failed to retrieve account details")
+            }
+            
+            isLoading = false
+        }}
 }

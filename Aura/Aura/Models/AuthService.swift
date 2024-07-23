@@ -67,7 +67,7 @@ class AuthService {
             let authenticationResponse = try JSONDecoder().decode(AuthenticationResponse.self, from: data)
             
             AuthService.token = authenticationResponse.token
-        } catch{
+        } catch {
             throw AuthServiceError.unknown
         }
     }

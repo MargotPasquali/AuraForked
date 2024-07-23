@@ -19,6 +19,7 @@
 		53D4189D2AC715AA0070ADB1 /* AccountDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53D4189C2AC715AA0070ADB1 /* AccountDetailViewModel.swift */; };
 		53D4189F2AC717890070ADB1 /* MoneyTransferViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53D4189E2AC717890070ADB1 /* MoneyTransferViewModel.swift */; };
 		53D418A12AC71B8F0070ADB1 /* View+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53D418A02AC71B8F0070ADB1 /* View+Extensions.swift */; };
+		AE975D5C2C4FBB1A005CCE65 /* AuthenticationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE975D5B2C4FBB1A005CCE65 /* AuthenticationCoordinator.swift */; };
 		AE9DB6722C40114500CCD719 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9DB6712C40114500CCD719 /* AuthService.swift */; };
 		AE9DB67A2C45693000CCD719 /* AuraTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9DB6792C45693000CCD719 /* AuraTests.swift */; };
 		AE9DB6812C456CC200CCD719 /* Auth.json in Resources */ = {isa = PBXBuildFile; fileRef = AE9DB6802C456CC200CCD719 /* Auth.json */; };
@@ -55,6 +56,7 @@
 		53D4189C2AC715AA0070ADB1 /* AccountDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountDetailViewModel.swift; sourceTree = "<group>"; };
 		53D4189E2AC717890070ADB1 /* MoneyTransferViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoneyTransferViewModel.swift; sourceTree = "<group>"; };
 		53D418A02AC71B8F0070ADB1 /* View+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Extensions.swift"; sourceTree = "<group>"; };
+		AE975D5B2C4FBB1A005CCE65 /* AuthenticationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationCoordinator.swift; sourceTree = "<group>"; };
 		AE9DB6712C40114500CCD719 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		AE9DB6772C45693000CCD719 /* AuraTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AuraTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		AE9DB6792C45693000CCD719 /* AuraTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuraTests.swift; sourceTree = "<group>"; };
@@ -144,6 +146,7 @@
 				53D4189A2AC711990070ADB1 /* AuthenticationViewModel.swift */,
 				53D4189C2AC715AA0070ADB1 /* AccountDetailViewModel.swift */,
 				53D4189E2AC717890070ADB1 /* MoneyTransferViewModel.swift */,
+				AE975D5B2C4FBB1A005CCE65 /* AuthenticationCoordinator.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -314,6 +317,7 @@
 				53D418912AC70A920070ADB1 /* AuthenticationView.swift in Sources */,
 				AE9DB6892C46D20C00CCD719 /* AllTransactionsView.swift in Sources */,
 				AE9DB6722C40114500CCD719 /* AuthService.swift in Sources */,
+				AE975D5C2C4FBB1A005CCE65 /* AuthenticationCoordinator.swift in Sources */,
 				53D418932AC70AB10070ADB1 /* AccountDetailView.swift in Sources */,
 				53D4189F2AC717890070ADB1 /* MoneyTransferViewModel.swift in Sources */,
 				53D4188D2AC709F40070ADB1 /* AppViewModel.swift in Sources */,

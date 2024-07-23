@@ -11,12 +11,12 @@ import XCTest
 class AuthenticationViewModelTests: XCTestCase {
 
     var viewModel: AuthenticationViewModel?
-    
+
     override func setUp() {
         super.setUp()
-        let authSession = URLSessionFake(data: FakeResponseData.authCorrectData, response: FakeResponseData.responseOk, error: nil)
+        let urlSession = URLSessionFake(data: FakeResponseData.authCorrectData, response: FakeResponseData.responseOk, error: nil)
         let accountSession = URLSessionFake(data: FakeResponseData.logAccountCorrectData, response: FakeResponseData.responseOk, error: nil)
-        let authService = AuthService(authSession: authSession, accountSession: accountSession)
+        let authService = AuthService(urlSession: urlSession)
         viewModel = AuthenticationViewModel(authService: authService) {}
     }
 
@@ -30,23 +30,24 @@ class AuthenticationViewModelTests: XCTestCase {
         XCTAssertFalse(AuthenticationViewModel.validateEmail("invalid-email"))
     }
 
-    func testLoginSuccessful() {
+    func testLoginSuccessful() async {
         guard let viewModel = viewModel else {
             XCTFail("ViewModel should not be nil")
             return
         }
 
         let expectation = self.expectation(description: "Login should succeed")
-        
-        viewModel.onLoginSucceed = {
+
+        // Perform login
+        viewModel.username = "test@aura.app"
+        viewModel.password = "test123"
+
+        Task {
+            await viewModel.login()
             expectation.fulfill()
         }
 
-        viewModel.username = "test@aura.app"
-        viewModel.password = "test123"
-        viewModel.login()
-
-        waitForExpectations(timeout: 5, handler: { error in
+        await waitForExpectations(timeout: 5, handler: { error in
             if error != nil {
                 print("Timeout Error: \(String(describing: error))")
             }

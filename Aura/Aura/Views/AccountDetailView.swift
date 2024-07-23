@@ -63,7 +63,9 @@ struct AccountDetailView: View {
             Spacer()
         }
         .onAppear {
-            viewModel.fetchAccountDetails()
+            Task {
+                await viewModel.fetchAccountDetails()
+            }
         }
         .onTapGesture {
             self.endEditing(true)  // This will dismiss the keyboard when tapping outside
