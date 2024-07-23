@@ -8,14 +8,23 @@
 import Foundation
 
 class MoneyTransferViewModel: ObservableObject {
+    
+    enum MoneyTransferError: Error {
+        case transferFailed
+        case invalidRecipientOrAmount
+        case emptyField
+    }
     @Published var recipient: String = ""
     @Published var amount: String = ""
     @Published var transferMessage: String = ""
     
     var accountDetailViewModel: AccountDetailViewModel
-
-    init(accountDetailViewModel: AccountDetailViewModel) {
+    var authService: AuthService
+    
+    
+    init(accountDetailViewModel: AccountDetailViewModel, authService: AuthService = AuthService.shared) {
         self.accountDetailViewModel = accountDetailViewModel
+        self.authService = authService
     }
     
     static func validateEmail(_ email: String) -> Bool {
@@ -34,7 +43,7 @@ class MoneyTransferViewModel: ObservableObject {
             return false
         }
     }
-
+    
     static func validatePhoneNumber(_ phoneNumber: String) -> Bool {
         // More flexible regex to match various phone number formats
         let phoneRegEx = "^\\+?[0-9]{1,4}[\\s-]?[0-9]{1,3}([\\s-]?[0-9]{1,4}){1,4}$"
@@ -43,34 +52,31 @@ class MoneyTransferViewModel: ObservableObject {
         print("Validating phone number: \(phoneNumber), Result: \(result)")
         return result
     }
-
+    
     static func validateRecipient(_ recipient: String) -> Bool {
         let isValidEmail = validateEmail(recipient)
         let isValidPhone = validatePhoneNumber(recipient)
         print("Validating recipient: \(recipient), isValidEmail: \(isValidEmail), isValidPhone: \(isValidPhone)")
         return isValidEmail || isValidPhone
     }
-
-    func sendMoney() {
+    
+    func sendMoney() async throws{
         guard !recipient.isEmpty, !amount.isEmpty, let amountValue = Float(amount) else {
-            transferMessage = "Please enter a valid recipient and amount."
+            throw MoneyTransferError.emptyField
             return
         }
         
         guard MoneyTransferViewModel.validateRecipient(recipient) else {
-            transferMessage = "Please enter a valid email or phone number."
+            throw MoneyTransferError.invalidRecipientOrAmount
             return
         }
         
-        AuthService.shared.createTransfer(recipient: recipient, amount: amountValue) { [weak self] (error: Error?) in
-            guard let self = self else { return }
-            
-            if let error = error {
-                self.transferMessage = "Transfer failed: \(error.localizedDescription)"
-            } else {
-                self.transferMessage = "Successfully transferred \(self.amount) to \(self.recipient)"
-                self.accountDetailViewModel.fetchAccountDetails()
-            }
+        do {
+            try await authService.createTransfer(recipient: recipient, amount: amountValue)
+            transferMessage = "Successfully transferred \(amount) to \(recipient)"
+            await accountDetailViewModel.fetchAccountDetails()
+        } catch {
+            transferMessage = "Transfer failed: \(error.localizedDescription)"
         }
     }
 }

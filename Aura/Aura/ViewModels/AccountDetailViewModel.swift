@@ -11,23 +11,22 @@ class AccountDetailViewModel: ObservableObject {
     @Published var totalAmount: String = ""
     @Published var recentTransactions: [Transaction] = []
     
-    init() {
-        fetchAccountDetails()
+    var authService: AuthService
+    
+    init(authService: AuthService = AuthService.shared) {
+        self.authService = authService
+        Task {
+            await fetchAccountDetails()
+        }
     }
     
-    func fetchAccountDetails() {
-        AuthService.shared.logAccount { [weak self] (accountDetail: AccountDetail?, error: Error?) in
-            guard let self = self else { return }
-            
-            if let error = error {
-                print("Error fetching account details: \(error.localizedDescription)")
-                return
-            }
-            
-            if let accountDetail = accountDetail {
-                self.totalAmount = String(format: "€%.2f", accountDetail.currentBalance)
-                self.recentTransactions = accountDetail.transactions
-            }
+    func fetchAccountDetails() async {
+        do {
+            let accountDetail = try await authService.logAccount()
+            self.totalAmount = String(format: "€%.2f", accountDetail.currentBalance)
+            self.recentTransactions = accountDetail.transactions
+        } catch {
+            print("Error fetching account details: \(error.localizedDescription)")
         }
     }
 }

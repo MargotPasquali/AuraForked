@@ -73,7 +73,7 @@ struct AuthenticationView: View {
             self.endEditing(true)  // This will dismiss the keyboard when tapping outside
         }
         .sheet(isPresented: $showDestination) {
-            viewModel.destinationView
+            viewModel.destinationView // modal view
         }
         .onChange(of: viewModel.isAuthenticated) { isAuthenticated in
             if isAuthenticated {
