@@ -39,6 +39,7 @@ class AuthService {
     private var task: URLSessionDataTask?
     private var urlSession: URLSession
     
+    
     init(urlSession: URLSession) {
         self.urlSession = urlSession
     }

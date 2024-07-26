@@ -47,11 +47,14 @@ class AuthenticationViewModelTests: XCTestCase {
         viewModel.password = "test123"
         
         Task {
-            try await viewModel.login()
-            expectation.fulfill()
+            do {
+                try await viewModel.login()
+                expectation.fulfill()
+            } catch {
+                XCTFail("Login failed with error: \(error)")
+            }
         }
         
         await waitForExpectations(timeout: 5)
-        
     }
 }

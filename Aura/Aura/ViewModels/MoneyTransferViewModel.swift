@@ -73,10 +73,14 @@ class MoneyTransferViewModel: ObservableObject {
         
         do {
             try await authService.createTransfer(recipient: recipient, amount: amountValue)
-            transferMessage = "Successfully transferred \(amount) to \(recipient)"
+            DispatchQueue.main.async {
+                self.transferMessage = "Successfully transferred \(self.amount) to \(self.recipient)"
+            }
             await accountDetailViewModel.fetchAccountDetails()
         } catch {
-            transferMessage = "Transfer failed: \(error.localizedDescription)"
+            DispatchQueue.main.async {
+                self.transferMessage = "Transfer failed: \(error.localizedDescription)"
+            }
         }
     }
 }
