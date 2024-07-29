@@ -2,7 +2,7 @@
 //  AuthenticationViewModelTests.swift
 //  AuraTests
 //
-//  Created by Margot Pasquali on 17/07/2024.
+//  Created by Margot Pasquali on 29/07/2024.
 //
 
 import XCTest
@@ -19,8 +19,8 @@ class AuthenticationViewModelTests: XCTestCase {
         let responseOk = FakeResponseData.responseOk
         
         let urlSession = URLSessionFake(data: authData, response: responseOk, error: nil)
-        let authService = AuthService(urlSession: urlSession)
-        viewModel = AuthenticationViewModel(authService: authService) {}
+        let authService = AuthService(urlSession: urlSession as! URLSessionProtocol)
+        viewModel = AuthenticationViewModel(authService: authService)
     }
 
     override func tearDown() {
@@ -33,28 +33,23 @@ class AuthenticationViewModelTests: XCTestCase {
         XCTAssertFalse(AuthenticationViewModel.validateEmail("invalid-email"))
     }
 
-    func testLoginSuccessful() async {
+    func testLoginSuccessful() async throws {
         guard let viewModel = viewModel else {
             XCTFail("ViewModel should not be nil")
             return
         }
 
-        // Set up expectation
         let expectation = self.expectation(description: "Login should succeed")
         
-        // Set callback to fulfill expectation
         viewModel.username = "test@aura.app"
         viewModel.password = "test123"
         
         Task {
-            do {
-                try await viewModel.login()
-                expectation.fulfill()
-            } catch {
-                XCTFail("Login failed with error: \(error)")
-            }
+            try await viewModel.login()
+            expectation.fulfill()
         }
         
         await waitForExpectations(timeout: 5)
+        
     }
 }

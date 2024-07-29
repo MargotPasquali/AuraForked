@@ -2,13 +2,13 @@
 //  URLSessionFake.swift
 //  AuraTests
 //
-//  Created by Margot Pasquali on 15/07/2024.
+//  Created by Margot Pasquali on 29/07/2024.
 //
 
 import Foundation
+@testable import Aura
 
-class URLSessionFake: URLSession {
-    
+class URLSessionFake: URLSessionProtocol {
     var data: Data?
     var response: URLResponse?
     var error: Error?
@@ -19,13 +19,13 @@ class URLSessionFake: URLSession {
         self.error = error
     }
 
-    func data(for request: URLRequest) async throws {
+    func data(for request: URLRequest) async throws -> (Data, URLResponse) {
         if let error = error {
             throw error
         }
-
         guard let data = data, let response = response else {
             throw URLError(.badServerResponse)
         }
+        return (data, response)
     }
 }

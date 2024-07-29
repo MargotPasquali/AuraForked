@@ -31,17 +31,24 @@ class AuthService {
         case unknown
     }
     
-    static var shared = AuthService(urlSession: URLSession.shared) // singleton
+    static var shared = AuthService(urlSession: URLSession.shared as URLSessionProtocol) // singleton
     
     private static let url = URL(string: "http://127.0.0.1:8080/")!
     private static var token: String?
     
     private var task: URLSessionDataTask?
-    private var urlSession: URLSession
+    private var urlSession: URLSessionProtocol
     
-    
-    init(urlSession: URLSession) {
+    init(urlSession: URLSessionProtocol) {
         self.urlSession = urlSession
+    }
+    
+    func setToken(_ token: String) {
+        AuthService.token = token
+    }
+    
+    func getToken() -> String? {
+        return AuthService.token
     }
     
     func authenticate(username: String, password: String) async throws {
@@ -53,7 +60,6 @@ class AuthService {
         var request = URLRequest(url: AuthService.url.appendingPathComponent("auth"))
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
         
         let emailAndPassword = AuthenticationRequest(username: username, password: password)
         do {
@@ -72,7 +78,6 @@ class AuthService {
             throw AuthServiceError.unknown
         }
     }
-    
     
     func logAccount() async throws -> AccountDetail {
         print("logAccount called")
@@ -121,6 +126,5 @@ class AuthService {
         } catch {
             throw AuthServiceError.unknown
         }
-        
     }
 }
