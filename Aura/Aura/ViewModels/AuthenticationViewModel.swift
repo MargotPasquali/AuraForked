@@ -22,10 +22,10 @@ class AuthenticationViewModel: ObservableObject {
     @Published var errorMessage: String?
     
     var authService: AuthService
-    private let callback: () -> Void
+    private let callback: (Bool) -> Void
+
     
-    
-    init(authService: AuthService = AuthService.shared, callback: @escaping () -> Void = {}) {
+    init(authService: AuthService = RemoteAuthService(), callback: @escaping (Bool) -> Void = { _ in }) {
         self.authService = authService
         self.callback = callback
     }
@@ -50,9 +50,8 @@ class AuthenticationViewModel: ObservableObject {
     func login() async throws{
         print("Trying to login with username: \(username) and password: \(password)") // Debug
         
-        guard AuthenticationViewModel.validateEmail(username) else {
-            errorMessage = "Invalid email address"
-            return
+        guard AuthenticationViewModel.validateEmail(username), !password.isEmpty else {
+            throw AuthenticationViewModelError.authenticationFailed
         }
         
         isLoading = true
@@ -71,7 +70,9 @@ class AuthenticationViewModel: ObservableObject {
         } catch {
             throw AuthenticationViewModelError.missingAccountDetails
         }
-        callback()
+
+        callback(true)
+
         isLoading = false
     }
 }

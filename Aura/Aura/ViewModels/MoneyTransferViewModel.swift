@@ -22,7 +22,7 @@ class MoneyTransferViewModel: ObservableObject {
     var authService: AuthService
     
     
-    init(accountDetailViewModel: AccountDetailViewModel, authService: AuthService = AuthService.shared) {
+    init(accountDetailViewModel: AccountDetailViewModel, authService: AuthService = RemoteAuthService()) {
         self.accountDetailViewModel = accountDetailViewModel
         self.authService = authService
     }

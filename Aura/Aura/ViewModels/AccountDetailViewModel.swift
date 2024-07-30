@@ -13,7 +13,7 @@ class AccountDetailViewModel: ObservableObject {
     
     var authService: AuthService
     
-    init(authService: AuthService = AuthService.shared) {
+    init(authService: AuthService = RemoteAuthService()) {
         self.authService = authService
         Task {
             await fetchAccountDetails()

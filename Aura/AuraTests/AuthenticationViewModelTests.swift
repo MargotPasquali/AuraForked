@@ -8,23 +8,44 @@
 import XCTest
 @testable import Aura
 
+struct MockAuthService: AuthService {
+
+    static var token: String?
+
+    static var authServiceError: RemoteAuthService.AuthServiceError?
+
+    func authenticate(username: String, password: String) async throws {
+        if let authServiceError = Self.authServiceError {
+            throw authServiceError
+        }
+    }
+    
+    func logAccount() async throws -> Aura.AccountDetail {
+        if let authServiceError = Self.authServiceError {
+            throw authServiceError
+        } else {
+            try! JSONDecoder().decode(Aura.AccountDetail.self, from: FakeResponseData.logAccountCorrectData)
+        }
+    }
+    
+    func createTransfer(recipient: String, amount: Float) async throws {
+
+    }
+}
+
 class AuthenticationViewModelTests: XCTestCase {
 
     var viewModel: AuthenticationViewModel?
     
     override func setUp() {
         super.setUp()
-        let authData = FakeResponseData.authCorrectData
-        let accountData = FakeResponseData.logAccountCorrectData
-        let responseOk = FakeResponseData.responseOk
         
-        let urlSession = URLSessionFake(data: authData, response: responseOk, error: nil)
-        let authService = AuthService(urlSession: urlSession as! URLSessionProtocol)
-        viewModel = AuthenticationViewModel(authService: authService)
+        viewModel = AuthenticationViewModel(authService: MockAuthService())
     }
 
     override func tearDown() {
         viewModel = nil
+
         super.tearDown()
     }
 
@@ -34,22 +55,31 @@ class AuthenticationViewModelTests: XCTestCase {
     }
 
     func testLoginSuccessful() async throws {
-        guard let viewModel = viewModel else {
-            XCTFail("ViewModel should not be nil")
-            return
+        let viewModel = AuthenticationViewModel(authService: MockAuthService()) { result in
+            XCTAssertTrue(result)
         }
 
-        let expectation = self.expectation(description: "Login should succeed")
-        
         viewModel.username = "test@aura.app"
         viewModel.password = "test123"
         
-        Task {
-            try await viewModel.login()
-            expectation.fulfill()
+        try await viewModel.login()
+    }
+
+    func testLoginFailed() async throws {
+        let viewModel = AuthenticationViewModel(authService: MockAuthService()) { result in
+            XCTAssertTrue(result)
         }
-        
-        await waitForExpectations(timeout: 5)
-        
+
+        viewModel.username = "test@aura.app"
+        viewModel.password = ""
+
+        do {
+            try await viewModel.login()
+        } catch AuthenticationViewModel.AuthenticationViewModelError.authenticationFailed {
+            // Good
+            print("Good error")
+        } catch {
+            XCTFail("Wrong error")
+        }
     }
 }

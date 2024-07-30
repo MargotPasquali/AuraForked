@@ -17,12 +17,23 @@ struct TransferInformation: Encodable {
     let amount: Float
 }
 
-struct AuthenticationResponse: Decodable {
+struct AuthenticationResponse: Codable {
     let token: String
 }
 
-class AuthService {
-    
+protocol AuthService {
+
+    static var token: String? { get }
+
+    func authenticate(username: String, password: String) async throws
+
+    func logAccount() async throws -> AccountDetail
+
+    func createTransfer(recipient: String, amount: Float) async throws
+}
+
+final class RemoteAuthService: AuthService {
+
     enum AuthServiceError: Error {
         case invalidCredentials
         case invalidResponse
@@ -30,25 +41,16 @@ class AuthService {
         case missingToken
         case unknown
     }
-    
-    static var shared = AuthService(urlSession: URLSession.shared as URLSessionProtocol) // singleton
-    
+
     private static let url = URL(string: "http://127.0.0.1:8080/")!
-    private static var token: String?
-    
+
+    static var token: String?
+
     private var task: URLSessionDataTask?
     private var urlSession: URLSessionProtocol
     
-    init(urlSession: URLSessionProtocol) {
+    init(urlSession: URLSession = .shared) {
         self.urlSession = urlSession
-    }
-    
-    func setToken(_ token: String) {
-        AuthService.token = token
-    }
-    
-    func getToken() -> String? {
-        return AuthService.token
     }
     
     func authenticate(username: String, password: String) async throws {
@@ -57,7 +59,7 @@ class AuthService {
         }
         print("getAuth called with username: \(username) and password: \(password)")
         
-        var request = URLRequest(url: AuthService.url.appendingPathComponent("auth"))
+        var request = URLRequest(url: RemoteAuthService.url.appendingPathComponent("auth"))
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
@@ -73,7 +75,7 @@ class AuthService {
             
             let authenticationResponse = try JSONDecoder().decode(AuthenticationResponse.self, from: data)
             
-            AuthService.token = authenticationResponse.token
+            RemoteAuthService.token = authenticationResponse.token
         } catch {
             throw AuthServiceError.unknown
         }
@@ -81,11 +83,11 @@ class AuthService {
     
     func logAccount() async throws -> AccountDetail {
         print("logAccount called")
-        guard let token = AuthService.token else {
+        guard let token = RemoteAuthService.token else {
             throw AuthServiceError.missingToken
         }
         
-        var request = URLRequest(url: AuthService.url.appendingPathComponent("account"))
+        var request = URLRequest(url: RemoteAuthService.url.appendingPathComponent("account"))
         request.setValue(token, forHTTPHeaderField: "token")
         
         do {
@@ -103,11 +105,11 @@ class AuthService {
     
     func createTransfer(recipient: String, amount: Float) async throws {
         print("createTransfer called with recipient: \(recipient) and amount: \(amount)")
-        guard let token = AuthService.token else {
+        guard let token = RemoteAuthService.token else {
             throw AuthServiceError.missingToken
         }
         
-        var request = URLRequest(url: AuthService.url.appendingPathComponent("account/transfer"))
+        var request = URLRequest(url: RemoteAuthService.url.appendingPathComponent("account/transfer"))
         request.httpMethod = "POST"
         
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
