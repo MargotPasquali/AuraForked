@@ -22,11 +22,14 @@ class AuthenticationViewModel: ObservableObject {
     @Published var errorMessage: String?
     
     var authService: AuthService
-    private let callback: () -> Void
+    var accountService: AccountService
+    
+    private let callback: (Bool) -> Void
     
     
-    init(authService: AuthService = AuthService.shared, callback: @escaping () -> Void = {}) {
+    init(authService: AuthService = RemoteAuthService(), accountService: AccountService = RemoteAccountService(), callback: @escaping (Bool) -> Void = { _ in }) {
         self.authService = authService
+        self.accountService = accountService
         self.callback = callback
     }
     
@@ -46,32 +49,84 @@ class AuthenticationViewModel: ObservableObject {
         }
     }
     
+    //    @MainActor
+    //    func login() async throws{
+    //        print("Trying to login with username: \(username) and password: \(password)") // Debug
+    //
+    //        guard AuthenticationViewModel.validateEmail(username), !password.isEmpty else {
+    //            throw AuthenticationViewModelError.authenticationFailed
+    //        }
+    //
+    //        isLoading = true
+    //        errorMessage = nil
+    //
+    //        // Authenticate
+    //        do {
+    //            try await authService.authenticate(username: username, password: password)
+    //        } catch {
+    //            throw AuthenticationViewModelError.authenticationFailed
+    //        }
+    //
+    //        // Retrieve account details
+    //        do {
+    //            let accountDetails = try await accountService.logAccount()
+    //        } catch {
+    //            throw AuthenticationViewModelError.missingAccountDetails
+    //        }
+    //
+    //        callback(true)
+    //
+    //        isLoading = false
+    //    }
+    //}
+    
     @MainActor
-    func login() async throws{
-        print("Trying to login with username: \(username) and password: \(password)") // Debug
+    func performAuthentication() async throws {
+        print("Trying to authenticate with username: \(username) and password: \(password)") // Debug
         
-        guard AuthenticationViewModel.validateEmail(username) else {
-            errorMessage = "Invalid email address"
-            return
+        guard AuthenticationViewModel.validateEmail(username), !password.isEmpty else {
+            throw AuthenticationViewModelError.authenticationFailed
         }
         
         isLoading = true
         errorMessage = nil
         
-        // Authenticate
         do {
             try await authService.authenticate(username: username, password: password)
         } catch {
+            isLoading = false
             throw AuthenticationViewModelError.authenticationFailed
         }
         
-        // Retrieve account details
+        isLoading = false
+    }
+
+    @MainActor
+    func retrieveAccountDetails() async throws {
+        print("Retrieving account details") // Debug
+        
+        isLoading = true
+        errorMessage = nil
+        
         do {
-            let accountDetails = try await authService.logAccount()
+            let accountDetails = try await accountService.logAccount()
+            callback(true)
         } catch {
+            isLoading = false
             throw AuthenticationViewModelError.missingAccountDetails
         }
-        callback()
+        
         isLoading = false
+    }
+
+    @MainActor
+    func login() async throws {
+        do {
+            try await performAuthentication()
+            try await retrieveAccountDetails()
+        } catch {
+            errorMessage = error.localizedDescription
+            throw error
+        }
     }
 }

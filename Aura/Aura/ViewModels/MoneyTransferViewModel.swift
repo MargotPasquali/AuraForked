@@ -19,12 +19,12 @@ class MoneyTransferViewModel: ObservableObject {
     @Published var transferMessage: String = ""
     
     var accountDetailViewModel: AccountDetailViewModel
-    var authService: AuthService
+    var accountService: AccountService
     
     
-    init(accountDetailViewModel: AccountDetailViewModel, authService: AuthService = AuthService.shared) {
+    init(accountDetailViewModel: AccountDetailViewModel, accountService: AccountService = RemoteAccountService()) {
         self.accountDetailViewModel = accountDetailViewModel
-        self.authService = authService
+        self.accountService = accountService
     }
     
     static func validateEmail(_ email: String) -> Bool {
@@ -72,7 +72,7 @@ class MoneyTransferViewModel: ObservableObject {
         }
         
         do {
-            try await authService.createTransfer(recipient: recipient, amount: amountValue)
+            try await accountService.createTransfer(recipient: recipient, amount: amountValue)
             DispatchQueue.main.async {
                 self.transferMessage = "Successfully transferred \(self.amount) to \(self.recipient)"
             }

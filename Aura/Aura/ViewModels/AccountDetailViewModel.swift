@@ -11,10 +11,10 @@ class AccountDetailViewModel: ObservableObject {
     @Published var totalAmount: Double = 0
     @Published var recentTransactions: [Transaction] = []
     
-    var authService: AuthService
+    var accountService: AccountService
     
-    init(authService: AuthService = AuthService.shared) {
-        self.authService = authService
+    init(accountService: AccountService = RemoteAccountService()) {
+        self.accountService = accountService
         Task {
             await fetchAccountDetails()
         }
@@ -22,7 +22,7 @@ class AccountDetailViewModel: ObservableObject {
     
     func fetchAccountDetails() async {
             do {
-                let accountDetail = try await authService.logAccount()
+                let accountDetail = try await accountService.logAccount()
                 DispatchQueue.main.async {
                     self.totalAmount = accountDetail.currentBalance
                     self.recentTransactions = accountDetail.transactions
