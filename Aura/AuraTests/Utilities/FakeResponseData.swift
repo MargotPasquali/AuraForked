@@ -26,6 +26,15 @@ class FakeResponseData {
         return Data(json.utf8)
     }
     
+    static var authIncorrectData: Data {
+        let json = """
+        {
+            "token": "INVALID_TOKEN"
+        }
+        """
+        return Data(json.utf8)
+    }
+    
     static var logAccountCorrectData: Data {
         let json = """
         {
@@ -40,5 +49,5 @@ class FakeResponseData {
     }
     
     // Données de réponse incorrectes simulées
-    static let authIncorrectData = "erreur".data(using: .utf8)!
+    static let incorrectData = "erreur".data(using: .utf8)!
 }

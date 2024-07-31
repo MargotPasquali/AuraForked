@@ -49,37 +49,6 @@ class AuthenticationViewModel: ObservableObject {
         }
     }
     
-    //    @MainActor
-    //    func login() async throws{
-    //        print("Trying to login with username: \(username) and password: \(password)") // Debug
-    //
-    //        guard AuthenticationViewModel.validateEmail(username), !password.isEmpty else {
-    //            throw AuthenticationViewModelError.authenticationFailed
-    //        }
-    //
-    //        isLoading = true
-    //        errorMessage = nil
-    //
-    //        // Authenticate
-    //        do {
-    //            try await authService.authenticate(username: username, password: password)
-    //        } catch {
-    //            throw AuthenticationViewModelError.authenticationFailed
-    //        }
-    //
-    //        // Retrieve account details
-    //        do {
-    //            let accountDetails = try await accountService.logAccount()
-    //        } catch {
-    //            throw AuthenticationViewModelError.missingAccountDetails
-    //        }
-    //
-    //        callback(true)
-    //
-    //        isLoading = false
-    //    }
-    //}
-    
     @MainActor
     func performAuthentication() async throws {
         print("Trying to authenticate with username: \(username) and password: \(password)") // Debug
