@@ -9,7 +9,6 @@ import Foundation
 
 protocol AccountService {
     func logAccount() async throws -> AccountDetail
-
     func createTransfer(recipient: String, amount: Float) async throws
 }
 
@@ -21,6 +20,9 @@ final class RemoteAccountService: AccountService {
         case unauthorized
         case missingToken
         case unknown
+        case decodingError(DecodingError)
+        case networkError(Error)
+        case serverError // Ajout du cas serverError
     }
 
     private static let url = URL(string: "http://127.0.0.1:8080/")!
@@ -33,23 +35,41 @@ final class RemoteAccountService: AccountService {
     init(urlSession: URLSession = .shared) {
         self.urlSession = urlSession
     }
+
     func logAccount() async throws -> AccountDetail {
         print("logAccount called")
-        guard let token = RemoteAuthService.token else {
+        guard let token = RemoteAccountService.token else {
             throw AccountServiceError.missingToken
         }
         
         var request = URLRequest(url: RemoteAccountService.url.appendingPathComponent("account"))
-        request.setValue(token, forHTTPHeaderField: "token")
+        request.setValue(token, forHTTPHeaderField: "Authorization")
         
         do {
             let (data, response) = try await urlSession.data(for: request)
             
-            guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
+            guard let response = response as? HTTPURLResponse else {
                 throw AccountServiceError.invalidResponse
             }
-            
-            return try JSONDecoder().decode(AccountDetail.self, from: data)
+
+            switch response.statusCode {
+            case 200:
+                do {
+                    return try JSONDecoder().decode(AccountDetail.self, from: data)
+                } catch let decodingError as DecodingError {
+                    throw AccountServiceError.decodingError(decodingError)
+                }
+            case 401:
+                throw AccountServiceError.unauthorized
+            case 500...599:
+                throw AccountServiceError.serverError // Utilisation de serverError
+            default:
+                throw AccountServiceError.invalidResponse
+            }
+        } catch let error as URLError {
+            throw AccountServiceError.networkError(error)
+        } catch let error as AccountServiceError {
+            throw error
         } catch {
             throw AccountServiceError.unknown
         }
@@ -57,7 +77,7 @@ final class RemoteAccountService: AccountService {
     
     func createTransfer(recipient: String, amount: Float) async throws {
         print("createTransfer called with recipient: \(recipient) and amount: \(amount)")
-        guard let token = RemoteAuthService.token else {
+        guard let token = RemoteAccountService.token else {
             throw AccountServiceError.missingToken
         }
         
@@ -65,7 +85,7 @@ final class RemoteAccountService: AccountService {
         request.httpMethod = "POST"
         
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(token, forHTTPHeaderField: "token")
+        request.setValue(token, forHTTPHeaderField: "Authorization")
         
         let transferInformation = TransferInformation(recipient: recipient, amount: amount)
         
@@ -74,11 +94,27 @@ final class RemoteAccountService: AccountService {
             
             let (data, response) = try await urlSession.data(for: request)
             
-            guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
+            guard let response = response as? HTTPURLResponse else {
                 throw AccountServiceError.invalidResponse
             }
+
+            switch response.statusCode {
+            case 200:
+                return
+            case 401:
+                throw AccountServiceError.unauthorized
+            case 500...599:
+                throw AccountServiceError.serverError // Utilisation de serverError
+            default:
+                throw AccountServiceError.invalidResponse
+            }
+        } catch let error as URLError {
+            throw AccountServiceError.networkError(error)
+        } catch let error as AccountServiceError {
+            throw error
         } catch {
             throw AccountServiceError.unknown
         }
     }
 }
+

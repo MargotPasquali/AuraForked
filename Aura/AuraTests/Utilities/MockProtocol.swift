@@ -7,31 +7,39 @@
 
 import Foundation
 
-final class MockProtocol: URLProtocol {
+class MockProtocol: URLProtocol {
 
-    static var requestHandler: ((URLRequest) -> (HTTPURLResponse, Data))?
+    static var requestHandler: ((URLRequest) throws -> (HTTPURLResponse, Data))?
+    static var error: Error?
 
     override class func canInit(with request: URLRequest) -> Bool {
-        true
+        return true
     }
 
     override class func canonicalRequest(for request: URLRequest) -> URLRequest {
-        request
+        return request
     }
 
     override func startLoading() {
-        guard let requestHandler = Self.requestHandler else {
+        if let error = MockProtocol.error {
+            client?.urlProtocol(self, didFailWithError: error)
             return
         }
 
-        let (response, data) = requestHandler(request)
+        guard let handler = MockProtocol.requestHandler else {
+            fatalError("Handler is unavailable.")
+        }
 
-        client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-        client?.urlProtocol(self, didLoad: data)
+        do {
+            let (response, data) = try handler(request)
+            client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+            client?.urlProtocol(self, didLoad: data)
+        } catch {
+            client?.urlProtocol(self, didFailWithError: error)
+        }
+
         client?.urlProtocolDidFinishLoading(self)
     }
 
-    override func stopLoading() {
-        // Pas besoin de faire quoi que ce soit ici
-    }
+    override func stopLoading() {}
 }

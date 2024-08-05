@@ -21,15 +21,19 @@ class AccountDetailViewModel: ObservableObject {
     }
     
     func fetchAccountDetails() async {
-            do {
-                let accountDetail = try await accountService.logAccount()
-                DispatchQueue.main.async {
-                    self.totalAmount = accountDetail.currentBalance
-                    self.recentTransactions = accountDetail.transactions
-                }
-            } catch {
+        do {
+            let accountDetail = try await accountService.logAccount()
+            DispatchQueue.main.async {
+                self.totalAmount = accountDetail.currentBalance
+                self.recentTransactions = accountDetail.transactions
+            }
+        } catch {
+            DispatchQueue.main.async {
                 print("Error fetching account details: \(error.localizedDescription)")
+                self.totalAmount = 0
+                self.recentTransactions = []
             }
         }
-    
+    }
 }
+
