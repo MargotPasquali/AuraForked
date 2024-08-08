@@ -9,18 +9,29 @@ import Foundation
 
 class MoneyTransferViewModel: ObservableObject {
     
-    enum MoneyTransferError: Error {
+    enum MoneyTransferError: Error, LocalizedError {
         case transferFailed
         case invalidRecipientOrAmount
         case emptyField
+
+        var errorDescription: String? {
+            switch self {
+            case .transferFailed:
+                return "Transfer failed"
+            case .invalidRecipientOrAmount:
+                return "Invalid recipient or amount"
+            case .emptyField:
+                return "Fields cannot be empty"
+            }
+        }
     }
+
     @Published var recipient: String = ""
     @Published var amount: String = ""
     @Published var transferMessage: String = ""
     
     var accountDetailViewModel: AccountDetailViewModel
     var accountService: AccountService
-    
     
     init(accountDetailViewModel: AccountDetailViewModel, accountService: AccountService = RemoteAccountService()) {
         self.accountDetailViewModel = accountDetailViewModel
@@ -30,45 +41,35 @@ class MoneyTransferViewModel: ObservableObject {
     static func validateEmail(_ email: String) -> Bool {
         let emailRegEx = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
         let emailTest = NSPredicate(format: "SELF MATCHES %@", emailRegEx)
-        let range = NSRange(location: 0, length: email.utf16.count)
-        let regex = try! NSRegularExpression(pattern: emailRegEx)
-        
-        // Check if the email matches the regex
-        let match = regex.firstMatch(in: email, options: [], range: range)
-        
-        // Ensure no consecutive dots are present
-        if match != nil && !email.contains("..") {
-            return true
-        } else {
-            return false
-        }
+        return emailTest.evaluate(with: email)
     }
     
     static func validatePhoneNumber(_ phoneNumber: String) -> Bool {
-        // More flexible regex to match various phone number formats
         let phoneRegEx = "^\\+?[0-9]{1,4}[\\s-]?[0-9]{1,3}([\\s-]?[0-9]{1,4}){1,4}$"
         let phoneTest = NSPredicate(format: "SELF MATCHES %@", phoneRegEx)
-        let result = phoneTest.evaluate(with: phoneNumber)
-        print("Validating phone number: \(phoneNumber), Result: \(result)")
-        return result
+        return phoneTest.evaluate(with: phoneNumber)
     }
     
     static func validateRecipient(_ recipient: String) -> Bool {
-        let isValidEmail = validateEmail(recipient)
-        let isValidPhone = validatePhoneNumber(recipient)
-        print("Validating recipient: \(recipient), isValidEmail: \(isValidEmail), isValidPhone: \(isValidPhone)")
-        return isValidEmail || isValidPhone
+        return validateEmail(recipient) || validatePhoneNumber(recipient)
     }
     
-    func sendMoney() async throws{
+    func sendMoney() async throws {
+        print("sendMoney called with recipient: \(recipient), amount: \(amount)")
         guard !recipient.isEmpty, !amount.isEmpty, let amountValue = Float(amount) else {
+            DispatchQueue.main.async {
+                self.transferMessage = "Fields cannot be empty"
+            }
+            print("sendMoney failed due to empty fields")
             throw MoneyTransferError.emptyField
-            return
         }
         
         guard MoneyTransferViewModel.validateRecipient(recipient) else {
+            DispatchQueue.main.async {
+                self.transferMessage = "Invalid recipient or amount"
+            }
+            print("sendMoney failed due to invalid recipient or amount")
             throw MoneyTransferError.invalidRecipientOrAmount
-            return
         }
         
         do {
@@ -76,11 +77,14 @@ class MoneyTransferViewModel: ObservableObject {
             DispatchQueue.main.async {
                 self.transferMessage = "Successfully transferred \(self.amount) to \(self.recipient)"
             }
+            print("sendMoney succeeded")
             await accountDetailViewModel.fetchAccountDetails()
         } catch {
             DispatchQueue.main.async {
                 self.transferMessage = "Transfer failed: \(error.localizedDescription)"
             }
+            print("sendMoney failed with error: \(error)")
+            throw MoneyTransferError.transferFailed
         }
     }
 }

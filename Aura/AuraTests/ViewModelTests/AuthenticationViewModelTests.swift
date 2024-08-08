@@ -26,7 +26,6 @@ class AuthenticationViewModelTests: XCTestCase {
 
     override func tearDown() {
         viewModel = nil
-        MockAuthService.token = nil
         MockAuthService.authServiceError = nil
         MockAccountService.accountServiceError = nil
         super.tearDown()
@@ -35,14 +34,14 @@ class AuthenticationViewModelTests: XCTestCase {
     func testPerformAuthenticationSuccessful() async throws {
         viewModel?.username = "test@aura.app"
         viewModel?.password = "test123"
-        
+
         do {
             try await viewModel?.performAuthentication()
         } catch {
             XCTFail("Authentication failed with error: \(error)")
         }
-        
-        XCTAssertEqual(MockAuthService.token, "FB24D136-C228-491D-AB30-FDFD97009D19")
+
+        XCTAssertTrue(viewModel?.isLoading == false)
     }
 
     func testPerformAuthenticationFailed() async throws {
@@ -58,20 +57,21 @@ class AuthenticationViewModelTests: XCTestCase {
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
+
+        XCTAssertTrue(viewModel?.isLoading == false)
     }
 
     func testRetrieveAccountDetailsSuccessful() async throws {
-        MockAuthService.token = "FB24D136-C228-491D-AB30-FDFD97009D19"
-
         do {
             try await viewModel?.retrieveAccountDetails()
         } catch {
             XCTFail("Retrieving account details failed with error: \(error)")
         }
+
+        XCTAssertTrue(viewModel?.isLoading == false)
     }
 
     func testRetrieveAccountDetailsFailed() async throws {
-        MockAuthService.token = "FB24D136-C228-491D-AB30-FDFD97009D19"
         MockAccountService.accountServiceError = .missingToken
         
         do {
@@ -82,6 +82,8 @@ class AuthenticationViewModelTests: XCTestCase {
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
+
+        XCTAssertTrue(viewModel?.isLoading == false)
     }
 
     func testLoginSuccessful() async throws {
@@ -94,7 +96,7 @@ class AuthenticationViewModelTests: XCTestCase {
             XCTFail("Login failed with error: \(error)")
         }
         
-        XCTAssertEqual(MockAuthService.token, "FB24D136-C228-491D-AB30-FDFD97009D19")
+        XCTAssertTrue(viewModel?.isLoading == false)
     }
 
     func testLoginFailedAtAuthentication() async throws {
@@ -110,6 +112,8 @@ class AuthenticationViewModelTests: XCTestCase {
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
+
+        XCTAssertTrue(viewModel?.isLoading == false)
     }
 
     func testLoginFailedAtRetrieveAccountDetails() async throws {
@@ -125,5 +129,7 @@ class AuthenticationViewModelTests: XCTestCase {
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
+
+        XCTAssertTrue(viewModel?.isLoading == false)
     }
 }

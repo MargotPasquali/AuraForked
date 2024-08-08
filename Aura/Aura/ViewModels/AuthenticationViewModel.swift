@@ -8,7 +8,6 @@
 import Foundation
 import SwiftUI
 
-
 class AuthenticationViewModel: ObservableObject {
     
     enum AuthenticationViewModelError: Error {
@@ -25,7 +24,6 @@ class AuthenticationViewModel: ObservableObject {
     var accountService: AccountService
     
     private let callback: (Bool) -> Void
-    
     
     init(authService: AuthService = RemoteAuthService(), accountService: AccountService = RemoteAccountService(), callback: @escaping (Bool) -> Void = { _ in }) {
         self.authService = authService
@@ -79,21 +77,28 @@ class AuthenticationViewModel: ObservableObject {
         
         do {
             let accountDetails = try await accountService.logAccount()
+            print("Account details retrieved: \(accountDetails)") // Debug
             callback(true)
         } catch {
             isLoading = false
+            print("Failed to retrieve account details with error: \(error.localizedDescription)") // Debug
             throw AuthenticationViewModelError.missingAccountDetails
         }
         
         isLoading = false
     }
 
+
     @MainActor
     func login() async throws {
+        print("Starting login process") // Debug
         do {
             try await performAuthentication()
+            print("Authentication step completed successfully") // Debug
             try await retrieveAccountDetails()
+            print("Account details retrieval step completed successfully") // Debug
         } catch {
+            print("Login failed at \(error) with error: \(error.localizedDescription)") // Debug
             errorMessage = error.localizedDescription
             throw error
         }

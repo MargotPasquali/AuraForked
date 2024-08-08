@@ -75,7 +75,7 @@ Body Response:
 Description: Permet de demander le transfer d'argent a une personne via son numero de téléphone (Français uniquement) ou son adresse e-mail'
 
 Body Content Type: `application/json`
-Body Format : 
+Body Format :  
   - `recipient`: `String` (`email` ou `phone`)
   - `amount`: `Decimal`
   

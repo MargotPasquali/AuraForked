@@ -22,12 +22,10 @@ struct AuthenticationResponse: Codable {
 }
 
 protocol AuthService {
-
-    static var token: String? { get }
-
+    var token: String? { get set }
     func authenticate(username: String, password: String) async throws
-
 }
+
 
 final class RemoteAuthService: AuthService {
 
@@ -40,8 +38,7 @@ final class RemoteAuthService: AuthService {
     }
 
     private static let url = URL(string: "http://127.0.0.1:8080/")!
-
-    static var token: String?
+    var token: String?
 
     private var task: URLSessionDataTask?
     private var urlSession: URLSessionProtocol
@@ -89,13 +86,12 @@ final class RemoteAuthService: AuthService {
                 let authenticationResponse = try JSONDecoder().decode(AuthenticationResponse.self, from: data)
                 print("Decoded authentication response: \(authenticationResponse)")
                 
-                // Check for invalid token directly
                 if authenticationResponse.token == "INVALID_TOKEN" {
                     print("Unauthorized token: \(authenticationResponse.token)")
                     throw AuthServiceError.unauthorized
                 }
                 
-                RemoteAuthService.token = authenticationResponse.token
+                self.token = authenticationResponse.token
             } catch let decodingError as DecodingError {
                 print("Decoding error: \(decodingError)")
                 throw AuthServiceError.invalidResponse

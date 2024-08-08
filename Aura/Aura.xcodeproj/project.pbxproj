@@ -21,13 +21,13 @@
 		53D418A12AC71B8F0070ADB1 /* View+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53D418A02AC71B8F0070ADB1 /* View+Extensions.swift */; };
 		AE38A0BC2C61020C00ADC4AC /* AccountDetailViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE38A0BB2C61020C00ADC4AC /* AccountDetailViewModelTests.swift */; };
 		AE38A0BE2C61053E00ADC4AC /* MockServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE38A0BD2C61053E00ADC4AC /* MockServices.swift */; };
+		AE38A0C02C6108B100ADC4AC /* MoneyTransferViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE38A0BF2C6108B100ADC4AC /* MoneyTransferViewModelTests.swift */; };
 		AE868C342C5A71D4006762F6 /* AccountServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE868C332C5A71D4006762F6 /* AccountServiceTests.swift */; };
 		AE868C392C5A7351006762F6 /* MockProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE868C382C5A7351006762F6 /* MockProtocol.swift */; };
 		AE9DB6722C40114500CCD719 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9DB6712C40114500CCD719 /* AuthService.swift */; };
 		AE9DB6872C46C64700CCD719 /* Transaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9DB6862C46C64700CCD719 /* Transaction.swift */; };
 		AE9DB6892C46D20C00CCD719 /* AllTransactionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9DB6882C46D20C00CCD719 /* AllTransactionsView.swift */; };
 		AEB7C6192C57D65B009CB843 /* AuthServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEB7C6182C57D65B009CB843 /* AuthServiceProtocol.swift */; };
-		AEB7C6212C57E7DB009CB843 /* URLSessionFake.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEB7C6202C57E7DB009CB843 /* URLSessionFake.swift */; };
 		AEB7C6232C57E80C009CB843 /* FakeResponseData.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEB7C6222C57E80C009CB843 /* FakeResponseData.swift */; };
 		AEB7C6252C57E835009CB843 /* AuthServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEB7C6242C57E835009CB843 /* AuthServiceTests.swift */; };
 		AEB7C6272C57E8B8009CB843 /* AuthenticationViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEB7C6262C57E8B8009CB843 /* AuthenticationViewModelTests.swift */; };
@@ -61,6 +61,7 @@
 		53D418A02AC71B8F0070ADB1 /* View+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Extensions.swift"; sourceTree = "<group>"; };
 		AE38A0BB2C61020C00ADC4AC /* AccountDetailViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountDetailViewModelTests.swift; sourceTree = "<group>"; };
 		AE38A0BD2C61053E00ADC4AC /* MockServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockServices.swift; sourceTree = "<group>"; };
+		AE38A0BF2C6108B100ADC4AC /* MoneyTransferViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoneyTransferViewModelTests.swift; sourceTree = "<group>"; };
 		AE868C332C5A71D4006762F6 /* AccountServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountServiceTests.swift; sourceTree = "<group>"; };
 		AE868C382C5A7351006762F6 /* MockProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockProtocol.swift; sourceTree = "<group>"; };
 		AE9DB6712C40114500CCD719 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
@@ -68,7 +69,6 @@
 		AE9DB6862C46C64700CCD719 /* Transaction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transaction.swift; sourceTree = "<group>"; };
 		AE9DB6882C46D20C00CCD719 /* AllTransactionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllTransactionsView.swift; sourceTree = "<group>"; };
 		AEB7C6182C57D65B009CB843 /* AuthServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthServiceProtocol.swift; sourceTree = "<group>"; };
-		AEB7C6202C57E7DB009CB843 /* URLSessionFake.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLSessionFake.swift; sourceTree = "<group>"; };
 		AEB7C6222C57E80C009CB843 /* FakeResponseData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FakeResponseData.swift; sourceTree = "<group>"; };
 		AEB7C6242C57E835009CB843 /* AuthServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthServiceTests.swift; sourceTree = "<group>"; };
 		AEB7C6262C57E8B8009CB843 /* AuthenticationViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationViewModelTests.swift; sourceTree = "<group>"; };
@@ -180,7 +180,6 @@
 			children = (
 				AE868C382C5A7351006762F6 /* MockProtocol.swift */,
 				AEB7C6222C57E80C009CB843 /* FakeResponseData.swift */,
-				AEB7C6202C57E7DB009CB843 /* URLSessionFake.swift */,
 				AE38A0BD2C61053E00ADC4AC /* MockServices.swift */,
 			);
 			path = Utilities;
@@ -191,6 +190,7 @@
 			children = (
 				AEB7C6262C57E8B8009CB843 /* AuthenticationViewModelTests.swift */,
 				AE38A0BB2C61020C00ADC4AC /* AccountDetailViewModelTests.swift */,
+				AE38A0BF2C6108B100ADC4AC /* MoneyTransferViewModelTests.swift */,
 			);
 			path = ViewModelTests;
 			sourceTree = "<group>";
@@ -349,8 +349,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				AE868C342C5A71D4006762F6 /* AccountServiceTests.swift in Sources */,
+				AE38A0C02C6108B100ADC4AC /* MoneyTransferViewModelTests.swift in Sources */,
 				AEB7C6272C57E8B8009CB843 /* AuthenticationViewModelTests.swift in Sources */,
-				AEB7C6212C57E7DB009CB843 /* URLSessionFake.swift in Sources */,
 				AE38A0BE2C61053E00ADC4AC /* MockServices.swift in Sources */,
 				AE868C392C5A7351006762F6 /* MockProtocol.swift in Sources */,
 				AE38A0BC2C61020C00ADC4AC /* AccountDetailViewModelTests.swift in Sources */,

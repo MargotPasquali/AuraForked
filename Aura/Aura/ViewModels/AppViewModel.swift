@@ -10,6 +10,7 @@ import Foundation
 class AppViewModel: ObservableObject {
     @Published var isLogged: Bool
     
+    
     init() {
         isLogged = false
     }

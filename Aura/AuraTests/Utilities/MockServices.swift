@@ -10,7 +10,7 @@ import Foundation
 
 struct MockAuthService: AuthService {
     static var token: String?
-    static var authServiceError: RemoteAuthService.AuthServiceError?
+    static var authServiceError: MockServiceError?
 
     func authenticate(username: String, password: String) async throws {
         if let authServiceError = Self.authServiceError {
@@ -19,10 +19,15 @@ struct MockAuthService: AuthService {
             Self.token = "FB24D136-C228-491D-AB30-FDFD97009D19"
         }
     }
+
+    static func reset() {
+        token = nil
+        authServiceError = nil
+    }
 }
 
 struct MockAccountService: AccountService {
-    static var accountServiceError: RemoteAccountService.AccountServiceError?
+    static var accountServiceError: MockServiceError?
     static var accountDetails: AccountDetail = AccountDetail(currentBalance: 1234.56, transactions: [])
 
     func logAccount() async throws -> AccountDetail {
@@ -34,6 +39,13 @@ struct MockAccountService: AccountService {
     }
 
     func createTransfer(recipient: String, amount: Float) async throws {
-        // Mock implementation
+        if let accountServiceError = Self.accountServiceError {
+            throw accountServiceError
+        }
+    }
+
+    static func reset() {
+        accountServiceError = nil
+        accountDetails = AccountDetail(currentBalance: 1234.56, transactions: [])
     }
 }

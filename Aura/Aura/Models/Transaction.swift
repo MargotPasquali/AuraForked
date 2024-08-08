@@ -10,6 +10,8 @@ import Foundation
 struct AccountDetail: Codable {
     let currentBalance: Double
     let transactions: [Transaction]
+//    let username: String
+//    let email: String
 }
 
 struct Transaction: Codable {
