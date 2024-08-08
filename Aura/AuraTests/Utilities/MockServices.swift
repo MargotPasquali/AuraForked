@@ -8,44 +8,46 @@
 import Foundation
 @testable import Aura
 
-struct MockAuthService: AuthService {
-    static var token: String?
-    static var authServiceError: MockServiceError?
+final class MockAuthService: AuthService {
 
-    func authenticate(username: String, password: String) async throws {
-        if let authServiceError = Self.authServiceError {
-            throw authServiceError
-        } else {
-            Self.token = "FB24D136-C228-491D-AB30-FDFD97009D19"
-        }
+    let networkManager: NetworkManager
+
+    var authServiceError: AuthServiceError?
+
+    init(networkManager: NetworkManager = .shared) {
+        self.networkManager = networkManager
     }
 
-    static func reset() {
-        token = nil
-        authServiceError = nil
+    func authenticate(username: String, password: String) async throws {
+        if let authServiceError = authServiceError {
+            throw authServiceError
+        } else {
+            NetworkManager.shared.set(token: "FB24D136-C228-491D-AB30-FDFD97009D19")
+        }
     }
 }
 
-struct MockAccountService: AccountService {
-    static var accountServiceError: MockServiceError?
-    static var accountDetails: AccountDetail = AccountDetail(currentBalance: 1234.56, transactions: [])
+final class MockAccountService: AccountService {
+
+    var accountServiceError: AccountServiceError?
+    
+    var accountDetails: AccountDetail = AccountDetail(currentBalance: 1234.56, transactions: [])
 
     func logAccount() async throws -> AccountDetail {
-        if let accountServiceError = Self.accountServiceError {
+        if let accountServiceError = accountServiceError {
             throw accountServiceError
         } else {
-            return Self.accountDetails
+            return accountDetails
         }
     }
 
     func createTransfer(recipient: String, amount: Float) async throws {
-        if let accountServiceError = Self.accountServiceError {
+        if let accountServiceError = accountServiceError {
             throw accountServiceError
         }
     }
 
-    static func reset() {
-        accountServiceError = nil
+    func setup() {
         accountDetails = AccountDetail(currentBalance: 1234.56, transactions: [])
     }
 }
