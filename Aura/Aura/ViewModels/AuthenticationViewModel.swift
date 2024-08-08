@@ -55,7 +55,6 @@ class AuthenticationViewModel: ObservableObject {
             throw AuthenticationViewModelError.authenticationFailed
         }
         
-        isLoading = true
         errorMessage = nil
         
         do {
@@ -64,15 +63,12 @@ class AuthenticationViewModel: ObservableObject {
             isLoading = false
             throw AuthenticationViewModelError.authenticationFailed
         }
-        
-        isLoading = false
     }
 
     @MainActor
     func retrieveAccountDetails() async throws {
         print("Retrieving account details") // Debug
         
-        isLoading = true
         errorMessage = nil
         
         do {
@@ -84,20 +80,23 @@ class AuthenticationViewModel: ObservableObject {
             print("Failed to retrieve account details with error: \(error.localizedDescription)") // Debug
             throw AuthenticationViewModelError.missingAccountDetails
         }
-        
-        isLoading = false
     }
-
 
     @MainActor
     func login() async throws {
         print("Starting login process") // Debug
+
         do {
+            isLoading = true
+
             try await performAuthentication()
             print("Authentication step completed successfully") // Debug
             try await retrieveAccountDetails()
             print("Account details retrieval step completed successfully") // Debug
+
+            isLoading = false
         } catch {
+            isLoading = false
             print("Login failed at \(error) with error: \(error.localizedDescription)") // Debug
             errorMessage = error.localizedDescription
             throw error

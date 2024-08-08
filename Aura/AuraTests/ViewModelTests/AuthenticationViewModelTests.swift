@@ -12,12 +12,14 @@ import XCTest
 class AuthenticationViewModelTests: XCTestCase {
 
     var viewModel: AuthenticationViewModel?
+    var mockAuthService: MockAuthService!
+    var mockAccountService: MockAccountService!
 
     override func setUp() {
         super.setUp()
         
-        let mockAuthService = MockAuthService()
-        let mockAccountService = MockAccountService()
+        mockAuthService = MockAuthService()
+        mockAccountService = MockAccountService()
         
         viewModel = AuthenticationViewModel(authService: mockAuthService, accountService: mockAccountService) { result in
             XCTAssertTrue(result)
@@ -26,8 +28,7 @@ class AuthenticationViewModelTests: XCTestCase {
 
     override func tearDown() {
         viewModel = nil
-        MockAuthService.authServiceError = nil
-        MockAccountService.accountServiceError = nil
+
         super.tearDown()
     }
 
@@ -47,8 +48,8 @@ class AuthenticationViewModelTests: XCTestCase {
     func testPerformAuthenticationFailed() async throws {
         viewModel?.username = "test@aura.app"
         viewModel?.password = "test123"
-        MockAuthService.authServiceError = .invalidCredentials
-        
+        mockAuthService.authServiceError = .invalidCredentials
+
         do {
             try await viewModel?.performAuthentication()
             XCTFail("Expected authentication to fail")
@@ -72,8 +73,8 @@ class AuthenticationViewModelTests: XCTestCase {
     }
 
     func testRetrieveAccountDetailsFailed() async throws {
-        MockAccountService.accountServiceError = .missingToken
-        
+        mockAccountService.accountServiceError = .missingToken
+
         do {
             try await viewModel?.retrieveAccountDetails()
             XCTFail("Expected retrieval to fail")
@@ -102,8 +103,8 @@ class AuthenticationViewModelTests: XCTestCase {
     func testLoginFailedAtAuthentication() async throws {
         viewModel?.username = "test@aura.app"
         viewModel?.password = "wrongpassword"
-        MockAuthService.authServiceError = .invalidCredentials
-        
+        mockAuthService.authServiceError = .invalidCredentials
+
         do {
             try await viewModel?.login()
             XCTFail("Expected login to fail at authentication")
@@ -119,7 +120,7 @@ class AuthenticationViewModelTests: XCTestCase {
     func testLoginFailedAtRetrieveAccountDetails() async throws {
         viewModel?.username = "test@aura.app"
         viewModel?.password = "test123"
-        MockAccountService.accountServiceError = .missingToken
+        mockAccountService.accountServiceError = .missingToken
         
         do {
             try await viewModel?.login()

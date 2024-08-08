@@ -9,14 +9,18 @@ import XCTest
 @testable import Aura
 
 final class MoneyTransferViewModelTests: XCTestCase {
+
     var viewModel: MoneyTransferViewModel!
     var mockAccountService: MockAccountService!
     var mockAccountDetailViewModel: AccountDetailViewModel!
 
     override func setUp() {
         super.setUp()
+
         mockAccountService = MockAccountService()
-        mockAccountDetailViewModel = AccountDetailViewModel(accountService: mockAccountService)
+        mockAccountService.setup()
+
+        mockAccountDetailViewModel = AccountDetailViewModel(accountService: self.mockAccountService)
         viewModel = MoneyTransferViewModel(accountDetailViewModel: mockAccountDetailViewModel, accountService: mockAccountService)
     }
 
@@ -24,8 +28,7 @@ final class MoneyTransferViewModelTests: XCTestCase {
         viewModel = nil
         mockAccountService = nil
         mockAccountDetailViewModel = nil
-        MockAccountService.accountServiceError = nil
-        MockAccountService.accountDetails = AccountDetail(currentBalance: 1234.56, transactions: [])
+
         super.tearDown()
     }
 
@@ -49,14 +52,16 @@ final class MoneyTransferViewModelTests: XCTestCase {
         // Given
         viewModel.recipient = "recipient@example.com"
         viewModel.amount = "100"
-        MockAccountService.accountServiceError = .networkError
+
+        mockAccountService.accountServiceError = AccountServiceError.invalidResponse
+
         print("Testing sendMoney with network error")
 
         // When
         do {
             try await viewModel.sendMoney()
             XCTFail("Expected send money to fail due to network error, but it did not.")
-        } catch MockServiceError.networkError {
+        } catch AccountServiceError.networkError {
             XCTAssertEqual(viewModel.transferMessage, "Transfer failed: A network error occurred.")
         } catch {
             XCTFail("Unexpected error: \(error)")
