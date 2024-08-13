@@ -27,63 +27,77 @@ final class RemoteAccountService: AccountService {
     private static let url = URL(string: "http://127.0.0.1:8080/")!
     private var task: URLSessionDataTask?
 
-    private let networkManager: NetworkManager
+    private let networkManager: NetworkManagerProtocol
 
-    init(networkManager: NetworkManager = .shared) {
+    init(networkManager: NetworkManagerProtocol = NetworkManager.shared) {
+        print("Initializing RemoteAccountService")
         self.networkManager = networkManager
     }
 
     func logAccount() async throws -> AccountDetail {
         print("logAccount called")
-        
+
         var request = URLRequest(url: RemoteAccountService.url.appendingPathComponent("account"))
-        
+
         do {
-            let (data, response) = try await networkManager.data(for: request)
+            let (data, response) = try await networkManager.data(for: request, authenticatedRequest: true)
+            print("Received response: \(response.statusCode)")
+            print("Received data: \(String(data: data, encoding: .utf8) ?? "No data")")
+
+            guard response.statusCode == 200 else {
+                print("Non-200 status code received: \(response.statusCode)")
+                if response.statusCode == 401 {
+                    throw AuthServiceError.unauthorized
+                } else if response.statusCode >= 500 {
+                    throw AuthServiceError.serverError
+                } else {
+                    throw AuthServiceError.invalidResponse
+                }
+            }
 
             do {
-                return try JSONDecoder().decode(AccountDetail.self, from: data)
+                let accountDetail = try JSONDecoder().decode(AccountDetail.self, from: data)
+                print("Decoded account detail: \(accountDetail)")
+                return accountDetail
             } catch let decodingError as DecodingError {
-                throw AccountServiceError.decodingError(decodingError)
+                print("Caught DecodingError: \(decodingError)")
+                throw AuthServiceError.decodingError(decodingError)
             }
-        } catch let error as AccountServiceError {
-            print("AccountServiceError occurred: \(error)")
-            throw error
         } catch {
-            print("Network error occurred: \(error)")
-            throw AccountServiceError.networkError(error)
+            print("Caught error in logAccount: \(error)")
+            throw error
         }
     }
-    
+
     func createTransfer(recipient: String, amount: Float) async throws {
         print("createTransfer called with recipient: \(recipient) and amount: \(amount)")
 
         var request = URLRequest(url: RemoteAccountService.url.appendingPathComponent("account/transfer"))
         request.httpMethod = "POST"
-        
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
         let transferInformation = TransferInformation(recipient: recipient, amount: amount)
-        
         do {
             request.httpBody = try JSONEncoder().encode(transferInformation)
-            
-            let (_, response) = try await networkManager.data(for: request)
+            print("HTTP body set with encoded transfer information")
 
-            switch response.statusCode {
-            case 200:
-                return
-            case 401:
-                throw AccountServiceError.unauthorized
-            case 500...599:
-                throw AccountServiceError.serverError
-            default:
-                throw AccountServiceError.invalidResponse
+            let (data, response) = try await networkManager.data(for: request, authenticatedRequest: true)
+            print("Received response: \(response.statusCode)")
+            print("Received data: \(String(data: data, encoding: .utf8) ?? "No data")")
+
+            guard response.statusCode == 200 else {
+                print("Non-200 status code received: \(response.statusCode)")
+                if response.statusCode == 401 {
+                    throw AuthServiceError.unauthorized
+                } else if response.statusCode >= 500 {
+                    throw AuthServiceError.serverError
+                } else {
+                    throw AuthServiceError.invalidResponse
+                }
             }
-        } catch let error as AccountServiceError {
-            throw error
         } catch {
-            throw AccountServiceError.networkError(error)
+            print("Caught error in createTransfer: \(error)")
+            throw error
         }
     }
 }

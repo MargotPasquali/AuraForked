@@ -9,6 +9,7 @@ import XCTest
 @testable import Aura
 
 final class MoneyTransferViewModelTests: XCTestCase {
+
     var viewModel: MoneyTransferViewModel!
     var mockAccountService: MockAccountService!
     var mockAccountDetailViewModel: AccountDetailViewModel!
@@ -24,73 +25,108 @@ final class MoneyTransferViewModelTests: XCTestCase {
         viewModel = nil
         mockAccountService = nil
         mockAccountDetailViewModel = nil
-        MockAccountService.accountServiceError = nil
-        MockAccountService.accountDetails = AccountDetail(currentBalance: 1234.56, transactions: [])
         super.tearDown()
     }
 
-    func testSendMoneyEmptyFields() async {
+    func testSendMoneyWithEmptyFields() async throws {
         // Given
         viewModel.recipient = ""
         viewModel.amount = ""
-        print("Testing sendMoney with empty fields")
+
+        // Création d'une attente pour la mise à jour asynchrone
+        let expectation = XCTestExpectation(description: "Waiting for transfer message to be updated")
+
         // When
         do {
             try await viewModel.sendMoney()
-            XCTFail("Expected send money to throw an error, but it did not.")
+            XCTFail("Expected sendMoney to fail due to empty fields")
         } catch MoneyTransferViewModel.MoneyTransferError.emptyField {
-            XCTAssertEqual(viewModel.transferMessage, "Fields cannot be empty")
+            // Alors, ajoutez un petit délai pour que l'interface se mette à jour
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                // Then
+                XCTAssertEqual(self.viewModel.transferMessage, "Fields cannot be empty")
+                expectation.fulfill()
+            }
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
+
+        // Attend que l'attente soit remplie
+        wait(for: [expectation], timeout: 1.0)
     }
 
-    func testSendMoneyFailed() async {
-        // Given
-        viewModel.recipient = "recipient@example.com"
-        viewModel.amount = "100"
-        MockAccountService.accountServiceError = .networkError
-        print("Testing sendMoney with network error")
-
-        // When
-        do {
-            try await viewModel.sendMoney()
-            XCTFail("Expected send money to fail due to network error, but it did not.")
-        } catch MockServiceError.networkError {
-            XCTAssertEqual(viewModel.transferMessage, "Transfer failed: A network error occurred.")
-        } catch {
-            XCTFail("Unexpected error: \(error)")
-        }
-    }
-
-
-    func testSendMoneyInvalidRecipient() async {
+    func testSendMoneyWithInvalidRecipient() async throws {
         // Given
         viewModel.recipient = "invalidrecipient"
         viewModel.amount = "100"
-        print("Testing sendMoney with invalid recipient")
+
+        let expectation = XCTestExpectation(description: "Waiting for transfer message to be updated")
+
         // When
-        do {
-            try await viewModel.sendMoney()
-            XCTFail("Expected send money to throw an error, but it did not.")
-        } catch MoneyTransferViewModel.MoneyTransferError.invalidRecipientOrAmount {
-            XCTAssertEqual(viewModel.transferMessage, "Invalid recipient or amount")
-        } catch {
-            XCTFail("Unexpected error: \(error)")
+        Task {
+            do {
+                try await self.viewModel.sendMoney()
+                XCTFail("Expected sendMoney to fail due to invalid recipient")
+            } catch MoneyTransferViewModel.MoneyTransferError.invalidRecipientOrAmount {
+                expectation.fulfill()
+            } catch {
+                XCTFail("Unexpected error: \(error)")
+            }
         }
+
+        wait(for: [expectation], timeout: 1.0)
+
+        // Then
+        XCTAssertEqual(viewModel.transferMessage, "Invalid recipient or amount")
     }
 
-    func testSendMoneySuccessful() async {
+    func testSendMoneyWithSuccessfulTransfer() async throws {
         // Given
-        viewModel.recipient = "recipient@example.com"
+        viewModel.recipient = "valid@example.com"
         viewModel.amount = "100"
-        print("Testing sendMoney successfully")
+        mockAccountService.accountDetails = AccountDetail(currentBalance: 1234.56, transactions: [])
+
+        // Création d'une attente pour la mise à jour asynchrone
+        let expectation = XCTestExpectation(description: "Waiting for transfer message to be updated")
+
         // When
-        do {
-            try await viewModel.sendMoney()
-            XCTAssertEqual(viewModel.transferMessage, "Successfully transferred 100 to recipient@example.com")
-        } catch {
-            XCTFail("Expected send money to succeed, but it failed with error: \(error)")
+        Task {
+            try await self.viewModel.sendMoney()
+            expectation.fulfill()
         }
+
+        // Attend que l'attente soit remplie
+        wait(for: [expectation], timeout: 1.0)
+
+        // Then
+        XCTAssertEqual(viewModel.transferMessage, "Successfully transferred 100 to valid@example.com")
+        XCTAssertEqual(mockAccountDetailViewModel.totalAmount, 1234.56)
     }
+
+    func testSendMoneyWithTransferFailure() async throws {
+        // Given
+        viewModel.recipient = "valid@example.com"
+        viewModel.amount = "100"
+        mockAccountService.accountServiceError = AccountServiceError.missingToken
+
+        let expectation = XCTestExpectation(description: "Waiting for transfer message to be updated")
+
+        // When
+        Task {
+            do {
+                try await self.viewModel.sendMoney()
+                XCTFail("Expected sendMoney to fail due to transfer error")
+            } catch MoneyTransferViewModel.MoneyTransferError.transferFailed {
+                expectation.fulfill()
+            } catch {
+                XCTFail("Unexpected error: \(error)")
+            }
+        }
+
+        wait(for: [expectation], timeout: 1.0)
+
+        // Then
+        XCTAssertTrue(viewModel.transferMessage.starts(with: "Transfer failed"))
+    }
+
 }

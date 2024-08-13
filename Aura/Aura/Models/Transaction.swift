@@ -14,7 +14,7 @@ struct AccountDetail: Codable {
 //    let email: String
 }
 
-struct Transaction: Codable {
+struct Transaction: Codable, Equatable {
     let label: String
     let value: Double
 }

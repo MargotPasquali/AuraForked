@@ -23,6 +23,7 @@
 		AE38A0BE2C61053E00ADC4AC /* MockServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE38A0BD2C61053E00ADC4AC /* MockServices.swift */; };
 		AE38A0C02C6108B100ADC4AC /* MoneyTransferViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE38A0BF2C6108B100ADC4AC /* MoneyTransferViewModelTests.swift */; };
 		AE4870112C6503300059BA28 /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4870102C6503300059BA28 /* NetworkManager.swift */; };
+		AE4870142C6510FF0059BA28 /* MockNetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4870132C6510FF0059BA28 /* MockNetworkManager.swift */; };
 		AE868C342C5A71D4006762F6 /* AccountServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE868C332C5A71D4006762F6 /* AccountServiceTests.swift */; };
 		AE868C392C5A7351006762F6 /* MockProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE868C382C5A7351006762F6 /* MockProtocol.swift */; };
 		AE9DB6722C40114500CCD719 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9DB6712C40114500CCD719 /* AuthService.swift */; };
@@ -63,6 +64,7 @@
 		AE38A0BD2C61053E00ADC4AC /* MockServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockServices.swift; sourceTree = "<group>"; };
 		AE38A0BF2C6108B100ADC4AC /* MoneyTransferViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoneyTransferViewModelTests.swift; sourceTree = "<group>"; };
 		AE4870102C6503300059BA28 /* NetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkManager.swift; sourceTree = "<group>"; };
+		AE4870132C6510FF0059BA28 /* MockNetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockNetworkManager.swift; sourceTree = "<group>"; };
 		AE868C332C5A71D4006762F6 /* AccountServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountServiceTests.swift; sourceTree = "<group>"; };
 		AE868C382C5A7351006762F6 /* MockProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockProtocol.swift; sourceTree = "<group>"; };
 		AE9DB6712C40114500CCD719 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
@@ -175,6 +177,14 @@
 			path = Managers;
 			sourceTree = "<group>";
 		};
+		AE4870122C650A940059BA28 /* Managers */ = {
+			isa = PBXGroup;
+			children = (
+				AE4870132C6510FF0059BA28 /* MockNetworkManager.swift */,
+			);
+			path = Managers;
+			sourceTree = "<group>";
+		};
 		AE868C352C5A71FE006762F6 /* ServicesTests */ = {
 			isa = PBXGroup;
 			children = (
@@ -215,6 +225,7 @@
 		AE9DB6782C45693000CCD719 /* AuraTests */ = {
 			isa = PBXGroup;
 			children = (
+				AE4870122C650A940059BA28 /* Managers */,
 				AE868C372C5A7227006762F6 /* ViewModelTests */,
 				AE868C362C5A720C006762F6 /* Utilities */,
 				AE868C352C5A71FE006762F6 /* ServicesTests */,
@@ -359,6 +370,7 @@
 				AE868C342C5A71D4006762F6 /* AccountServiceTests.swift in Sources */,
 				AE38A0C02C6108B100ADC4AC /* MoneyTransferViewModelTests.swift in Sources */,
 				AEB7C6272C57E8B8009CB843 /* AuthenticationViewModelTests.swift in Sources */,
+				AE4870142C6510FF0059BA28 /* MockNetworkManager.swift in Sources */,
 				AE38A0BE2C61053E00ADC4AC /* MockServices.swift in Sources */,
 				AE868C392C5A7351006762F6 /* MockProtocol.swift in Sources */,
 				AE38A0BC2C61020C00ADC4AC /* AccountDetailViewModelTests.swift in Sources */,

@@ -7,67 +7,62 @@
 
 import Foundation
 
-final class NetworkManager {
+protocol NetworkManagerProtocol {
+    var token: String? { get set }
+    func data(for request: URLRequest, authenticatedRequest: Bool) async throws -> (Data, HTTPURLResponse)
+    func set(token: String)
+}
 
-    // MARK: - Constants
-
+final class NetworkManager: NetworkManagerProtocol {
     static let shared = NetworkManager()
 
     private var urlSession: URLSession
 
-    // MARK: - Properties
-
-    private(set) var token: String?
-
-    // MARK: - Initialisation
+    var token: String?  // La propriété doit correspondre au protocole
 
     init(urlSession: URLSession = .shared) {
         self.urlSession = urlSession
     }
 
-    // MARK: - Functions
-
     func set(token: String) {
-        guard !token.isEmpty else {
-            return
-        }
-        
+        guard !token.isEmpty else { return }
         self.token = token
-    }
-
-    func set(urlSession: URLSession) {
-        self.urlSession = urlSession
     }
 
     func data(for request: URLRequest, authenticatedRequest: Bool = true) async throws -> (Data, HTTPURLResponse) {
         var customRequest = request
 
         if authenticatedRequest {
-            guard let token else {
+            guard let token = token else {
                 throw AuthServiceError.missingToken
             }
-
             customRequest.setValue(token, forHTTPHeaderField: "token")
         }
 
-        let (data, response) = try await urlSession.data(for: customRequest, delegate: nil)
+        do {
+            let (data, response) = try await urlSession.data(for: customRequest, delegate: nil)
 
-        guard let response = response as? HTTPURLResponse else {
-            print("Invalid response: not an HTTPURLResponse")
-            throw AuthServiceError.invalidResponse
-        }
-
-        guard response.statusCode == 200 else {
-            print("Invalid response status code: \(response.statusCode)")
-            if response.statusCode == 401 {
-                throw AuthServiceError.unauthorized
-            } else if response.statusCode >= 500 {
-                throw AuthServiceError.unknown
-            } else {
+            guard let response = response as? HTTPURLResponse else {
                 throw AuthServiceError.invalidResponse
             }
-        }
 
-        return (data, response)
+            switch response.statusCode {
+            case 200:
+                return (data, response)
+            case 401:
+                throw AuthServiceError.unauthorized
+            case 500...599:
+                throw AuthServiceError.serverError
+            default:
+                throw AuthServiceError.invalidResponse
+            }
+        } catch let error as URLError {
+            print("Caught URLError: \(error)")
+            throw AuthServiceError.networkError(error)
+        } catch {
+            print("Caught generic error: \(error)")
+            throw AuthServiceError.networkError(error)
+        }
     }
 }
+

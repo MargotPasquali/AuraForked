@@ -4,182 +4,185 @@
 //
 //  Created by Margot Pasquali on 31/07/2024.
 //
+
 import XCTest
 @testable import Aura
 
 class AccountServiceTests: XCTestCase {
 
     var accountService: AccountService!
-    private var urlSession: URLSession!
+    var mockNetworkManager: MockNetworkManager!
 
     override func setUp() {
         super.setUp()
-
-        let urlSessionConfiguration = URLSessionConfiguration.ephemeral
-        urlSessionConfiguration.protocolClasses = [MockProtocol.self]
-        urlSession = URLSession(configuration: urlSessionConfiguration)
-
-        accountService = MockAccountService()
-        MockAuthService.reset()
-        MockAccountService.reset()
+        mockNetworkManager = MockNetworkManager()
+        accountService = RemoteAccountService(networkManager: mockNetworkManager)
     }
 
     override func tearDown() {
-        MockProtocol.requestHandler = nil
-        MockProtocol.error = nil
+        mockNetworkManager = nil
         accountService = nil
-        MockAuthService.reset()
-        MockAccountService.reset()
         super.tearDown()
     }
 
     func testLogAccountSuccessful() async throws {
-        MockAccountService.token = "FB24D136-C228-491D-AB30-FDFD97009D19"
-        MockProtocol.requestHandler = { request in
-            print("Handling log account request: \(request)")
-            return (FakeResponseData.responseOk, FakeResponseData.logAccountCorrectData)
-        }
+        // Given
+        mockNetworkManager.response = FakeResponseData.responseOk
+        mockNetworkManager.responseData = FakeResponseData.logAccountCorrectData
+        mockNetworkManager.error = nil
 
+        // When
         do {
             let accountDetail = try await accountService.logAccount()
+            
+            // Then
             XCTAssertEqual(accountDetail.currentBalance, 1234.56)
             XCTAssertEqual(accountDetail.transactions.count, 2)
-        } catch let caughtError {
-            XCTFail("Unexpected error: \(caughtError)")
+        } catch {
+            XCTFail("Unexpected error: \(error)")
         }
     }
 
     func testLogAccountWithInvalidToken() async throws {
-        MockAccountService.token = "INVALID_TOKEN"
-        MockProtocol.requestHandler = { request in
-            print("Handling log account request with invalid token: \(request)")
-            let response = HTTPURLResponse(url: request.url!, statusCode: 401, httpVersion: nil, headerFields: nil)!
-            return (response, Data())
-        }
+        // Given
+        mockNetworkManager.response = FakeResponseData.responseWithInvalidToken
+        mockNetworkManager.responseData = Data()
+        mockNetworkManager.error = nil
 
+        // When
         do {
             _ = try await accountService.logAccount()
             XCTFail("Expected account logging to fail due to invalid token")
-        } catch RemoteAccountService.AccountServiceError.unauthorized {
-            // Expected error
-        } catch let caughtError {
-            XCTFail("Unexpected error: \(caughtError)")
+        } catch AuthServiceError.unauthorized {
+            // Then
+            print("Caught expected AuthServiceError.unauthorized")
+        } catch {
+            print("Unexpected error: \(error)")
+            XCTFail("Unexpected error: \(error)")
         }
     }
 
     func testLogAccountWithServerError() async throws {
-        MockAccountService.token = "FB24D136-C228-491D-AB30-FDFD97009D19"
-        MockProtocol.requestHandler = { request in
-            print("Handling log account request with server error: \(request)")
-            let response = HTTPURLResponse(url: request.url!, statusCode: 500, httpVersion: nil, headerFields: nil)!
-            return (response, Data())
-        }
+        // Given
+        mockNetworkManager.response = FakeResponseData.responseKo
+        mockNetworkManager.responseData = Data()
+        mockNetworkManager.error = nil
 
+        // When
         do {
             _ = try await accountService.logAccount()
             XCTFail("Expected account logging to fail due to server error")
-        } catch RemoteAccountService.AccountServiceError.serverError {
-            // Expected error
-        } catch let caughtError {
-            XCTFail("Unexpected error: \(caughtError)")
+        } catch AuthServiceError.serverError {
+            // Then
+            print("Caught expected AuthServiceError.serverError")
+        } catch {
+            print("Unexpected error: \(error)")
+            XCTFail("Unexpected error: \(error)")
         }
     }
 
     func testLogAccountWithNetworkError() async throws {
-        MockAccountService.token = "FB24D136-C228-491D-AB30-FDFD97009D19"
-        MockProtocol.error = URLError(.notConnectedToInternet)
-        print("Testing logAccount with network error")
+            // Given
+            let networkError = URLError(.notConnectedToInternet)
+            mockNetworkManager.error = networkError
+            print("Configured mock network error: \(networkError)")
 
-        do {
-            _ = try await accountService.logAccount()
-            XCTFail("Expected account logging to fail due to network error")
-        } catch RemoteAccountService.AccountServiceError.networkError {
-            // Expected error
-        } catch let caughtError {
-            XCTFail("Unexpected error: \(caughtError)")
+            // When
+            do {
+                _ = try await accountService.logAccount()
+                XCTFail("Expected account logging to fail due to network error")
+            } catch AuthServiceError.networkError(let error) {
+                // Then
+                XCTAssertEqual((error as? URLError)?.code, networkError.code)
+                print("Caught expected AuthServiceError.networkError: \(error)")
+            } catch {
+                print("Unexpected error: \(error)")
+                XCTFail("Unexpected error: \(error)")
+            }
         }
-    }
 
     func testLogAccountWithInvalidData() async throws {
-        MockAccountService.token = "FB24D136-C228-491D-AB30-FDFD97009D19"
-        MockProtocol.requestHandler = { request in
-            print("Handling log account request with invalid data: \(request)")
-            let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
-            return (response, FakeResponseData.incorrectData)
-        }
+        // Given
+        mockNetworkManager.response = FakeResponseData.responseOk
+        mockNetworkManager.responseData = FakeResponseData.incorrectData
+        mockNetworkManager.error = nil
 
+        // When
         do {
             _ = try await accountService.logAccount()
             XCTFail("Expected log account to fail due to invalid data")
-        } catch RemoteAccountService.AccountServiceError.decodingError {
-            // Expected error
-        } catch let caughtError {
-            XCTFail("Unexpected error: \(caughtError)")
+        } catch AuthServiceError.decodingError(let error) {
+            // Then
+            print("Caught expected AuthServiceError.decodingError: \(error)")
+        } catch {
+            print("Unexpected error: \(error)")
+            XCTFail("Unexpected error: \(error)")
         }
     }
 
     func testCreateTransferSuccessful() async throws {
-        MockAccountService.token = "FB24D136-C228-491D-AB30-FDFD97009D19"
-        MockProtocol.requestHandler = { request in
-            print("Handling create transfer request: \(request)")
-            return (FakeResponseData.responseOk, Data())
-        }
+        // Given
+        mockNetworkManager.response = FakeResponseData.responseOk
+        mockNetworkManager.responseData = Data()
+        mockNetworkManager.error = nil
 
+        // When
         do {
             try await accountService.createTransfer(recipient: "recipient@example.com", amount: 100.0)
-        } catch let caughtError {
-            XCTFail("Unexpected error: \(caughtError)")
+        } catch {
+            XCTFail("Unexpected error: \(error)")
         }
     }
 
     func testCreateTransferWithInvalidToken() async throws {
-        MockAccountService.token = "INVALID_TOKEN"
-        MockProtocol.requestHandler = { request in
-            print("Handling create transfer request with invalid token: \(request)")
-            let response = HTTPURLResponse(url: request.url!, statusCode: 401, httpVersion: nil, headerFields: nil)!
-            return (response, Data())
-        }
+        // Given
+        mockNetworkManager.response = FakeResponseData.responseWithInvalidToken
+        mockNetworkManager.responseData = Data()
+        mockNetworkManager.error = nil
 
+        // When
         do {
             try await accountService.createTransfer(recipient: "recipient@example.com", amount: 100.0)
             XCTFail("Expected create transfer to fail due to invalid token")
-        } catch RemoteAccountService.AccountServiceError.unauthorized {
-            // Expected error
-        } catch let caughtError {
-            XCTFail("Unexpected error: \(caughtError)")
+        } catch AuthServiceError.unauthorized {
+            // Then
+            print("Caught expected AuthServiceError.unauthorized")
+        } catch {
+            XCTFail("Unexpected error: \(error)")
         }
     }
 
     func testCreateTransferWithServerError() async throws {
-        MockAccountService.token = "FB24D136-C228-491D-AB30-FDFD97009D19"
-        MockProtocol.requestHandler = { request in
-            print("Handling create transfer request with server error: \(request)")
-            let response = HTTPURLResponse(url: request.url!, statusCode: 500, httpVersion: nil, headerFields: nil)!
-            return (response, Data())
-        }
+        // Given
+        mockNetworkManager.response = FakeResponseData.responseKo
+        mockNetworkManager.responseData = Data()
+        mockNetworkManager.error = nil
 
+        // When
         do {
             try await accountService.createTransfer(recipient: "recipient@example.com", amount: 100.0)
             XCTFail("Expected transfer to fail due to server error")
-        } catch RemoteAccountService.AccountServiceError.serverError {
-            // Expected error
-        } catch let caughtError {
-            XCTFail("Unexpected error: \(caughtError)")
+        } catch AuthServiceError.serverError {
+            // Then
+            print("Caught expected AuthServiceError.serverError")
+        } catch {
+            XCTFail("Unexpected error: \(error)")
         }
     }
 
     func testCreateTransferWithNetworkError() async throws {
-        MockAccountService.token = "FB24D136-C228-491D-AB30-FDFD97009D19"
-        MockProtocol.error = URLError(.notConnectedToInternet)
-        print("Testing createTransfer with network error")
+        // Given
+        mockNetworkManager.error = URLError(.notConnectedToInternet)
 
+        // When
         do {
             try await accountService.createTransfer(recipient: "recipient@example.com", amount: 100.0)
             XCTFail("Expected create transfer to fail due to network error")
-        } catch RemoteAccountService.AccountServiceError.networkError {
-            // Expected error
-        } catch let caughtError {
-            XCTFail("Unexpected error: \(caughtError)")
+        } catch AuthServiceError.networkError(let error) {
+            // Then
+            print("Caught expected AuthServiceError.networkError: \(error)")
+        } catch {
+            XCTFail("Unexpected error: \(error)")
         }
     }
 }

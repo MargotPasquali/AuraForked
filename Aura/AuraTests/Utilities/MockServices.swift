@@ -8,21 +8,26 @@
 import Foundation
 @testable import Aura
 
+
 final class MockAuthService: AuthService {
-
-    let networkManager: NetworkManager
-
-    var authServiceError: AuthServiceError?
-
-    init(networkManager: NetworkManager = .shared) {
+    var networkManager: NetworkManagerProtocol
+    
+    var authResponse: AuthenticationResponse?
+    var error: AuthServiceError?
+    
+    required init(networkManager: NetworkManagerProtocol) {
         self.networkManager = networkManager
     }
-
+    
     func authenticate(username: String, password: String) async throws {
-        if let authServiceError = authServiceError {
-            throw authServiceError
+        if let error = error {
+            throw error
+        }
+        
+        if let authResponse = authResponse {
+            networkManager.set(token: authResponse.token)
         } else {
-            NetworkManager.shared.set(token: "FB24D136-C228-491D-AB30-FDFD97009D19")
+            throw AuthServiceError.unknown
         }
     }
 }

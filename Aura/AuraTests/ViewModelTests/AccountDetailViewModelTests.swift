@@ -8,67 +8,56 @@
 import XCTest
 @testable import Aura
 
-class AccountDetailViewModelTests: XCTestCase {
-
-    var viewModel: AccountDetailViewModel?
+final class AccountDetailViewModelTests: XCTestCase {
+    
+    var viewModel: AccountDetailViewModel!
+    var mockAccountService: MockAccountService!
 
     override func setUp() {
         super.setUp()
-        
-        let mockAccountService = MockAccountService()
-        
+        mockAccountService = MockAccountService()
         viewModel = AccountDetailViewModel(accountService: mockAccountService)
     }
 
     override func tearDown() {
         viewModel = nil
-        MockAccountService.accountServiceError = nil
+        mockAccountService = nil
         super.tearDown()
     }
 
+    @MainActor
     func testFetchAccountDetailsSuccessful() async throws {
         // Given
-        let expectation = XCTestExpectation(description: "Fetch account details successfully")
+        let expectedBalance = 1234.56
+        let expectedTransactions = [
+            Transaction(label: "Transaction 1", value: 100.0),
+            Transaction(label: "Transaction 2", value: -50.0)
+        ]
+        mockAccountService.accountDetails = AccountDetail(currentBalance: expectedBalance, transactions: expectedTransactions)
         
-        await viewModel?.fetchAccountDetails()
+        // Ajout de l'impression pour suivre les valeurs avant le fetch
+        print("Before fetch: totalAmount = \(viewModel.totalAmount), recentTransactions = \(viewModel.recentTransactions.count)")
         
         // When
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            expectation.fulfill()
-        }
+        await viewModel.fetchAccountDetails()
         
-        wait(for: [expectation], timeout: 1.0)
-
-        guard let totalAmount = viewModel?.totalAmount else {
-            XCTFail("totalAmount is nil")
-            return
-        }
+        // Ajout de l'impression pour suivre les valeurs après le fetch
+        print("After fetch: totalAmount = \(viewModel.totalAmount), recentTransactions = \(viewModel.recentTransactions.count)")
+        
         // Then
-        XCTAssertEqual(totalAmount, 1234.56, accuracy: 0.01)
-        XCTAssertEqual(viewModel?.recentTransactions.count, 0)
+        XCTAssertEqual(viewModel.totalAmount, expectedBalance)
+        XCTAssertEqual(viewModel.recentTransactions, expectedTransactions)
     }
 
     func testFetchAccountDetailsFailed() async throws {
         // Given
-        let expectation = XCTestExpectation(description: "Fetch account details failed")
-        
-        MockAccountService.accountServiceError = .missingToken
-        
-        await viewModel?.fetchAccountDetails()
-        
+        mockAccountService.accountServiceError = AccountServiceError.missingToken
+
         // When
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            expectation.fulfill()
-        }
-        
-        wait(for: [expectation], timeout: 1.0)
-        
-        guard let totalAmount = viewModel?.totalAmount else {
-            XCTFail("totalAmount is nil")
-            return
-        }
+        await viewModel.fetchAccountDetails()
+
         // Then
-        XCTAssertEqual(totalAmount, 0.0)
-        XCTAssertEqual(viewModel?.recentTransactions.count, 0)
+        XCTAssertEqual(viewModel.totalAmount, 0)
+        XCTAssertTrue(viewModel.recentTransactions.isEmpty)
     }
 }

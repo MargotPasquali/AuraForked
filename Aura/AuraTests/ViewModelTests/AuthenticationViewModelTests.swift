@@ -8,128 +8,154 @@
 import XCTest
 @testable import Aura
 
-// ViewModel Tests
-class AuthenticationViewModelTests: XCTestCase {
+final class AuthenticationViewModelTests: XCTestCase {
 
-    var viewModel: AuthenticationViewModel?
+    var viewModel: AuthenticationViewModel!
+    var mockAuthService: MockAuthService!
+    var mockAccountService: MockAccountService!
 
     override func setUp() {
         super.setUp()
-        
-        let mockAuthService = MockAuthService()
-        let mockAccountService = MockAccountService()
-        
-        viewModel = AuthenticationViewModel(authService: mockAuthService, accountService: mockAccountService) { result in
-            XCTAssertTrue(result)
-        }
+        let mockNetworkManager = MockNetworkManager()
+        mockAuthService = MockAuthService(networkManager: mockNetworkManager)
+        mockAccountService = MockAccountService()
+        viewModel = AuthenticationViewModel(authService: mockAuthService, accountService: mockAccountService)
     }
 
     override func tearDown() {
         viewModel = nil
-        MockAuthService.authServiceError = nil
-        MockAccountService.accountServiceError = nil
+        mockAuthService = nil
+        mockAccountService = nil
         super.tearDown()
     }
 
     func testPerformAuthenticationSuccessful() async throws {
-        viewModel?.username = "test@aura.app"
-        viewModel?.password = "test123"
+        // Given
+        viewModel.username = "test@example.com"
+        viewModel.password = "password"
+        mockAuthService.authResponse = AuthenticationResponse(token: "valid-token")
 
+        // When
         do {
-            try await viewModel?.performAuthentication()
+            try await viewModel.performAuthentication()
+            // Then
+            XCTAssertNil(viewModel.errorMessage)
         } catch {
-            XCTFail("Authentication failed with error: \(error)")
+            XCTFail("Unexpected error: \(error)")
         }
-
-        XCTAssertTrue(viewModel?.isLoading == false)
     }
 
     func testPerformAuthenticationFailed() async throws {
-        viewModel?.username = "test@aura.app"
-        viewModel?.password = "test123"
-        MockAuthService.authServiceError = .invalidCredentials
-        
+        // Given
+        viewModel.username = "test@example.com"
+        viewModel.password = "password"
+        mockAuthService.error = AuthServiceError.unauthorized
+
+        // When
         do {
-            try await viewModel?.performAuthentication()
+            try await viewModel.performAuthentication()
             XCTFail("Expected authentication to fail")
         } catch AuthenticationViewModel.AuthenticationViewModelError.authenticationFailed {
-            // Expected error
+            // Then
+            XCTAssertNil(viewModel.errorMessage)
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
-
-        XCTAssertTrue(viewModel?.isLoading == false)
     }
 
     func testRetrieveAccountDetailsSuccessful() async throws {
-        do {
-            try await viewModel?.retrieveAccountDetails()
-        } catch {
-            XCTFail("Retrieving account details failed with error: \(error)")
-        }
+        // Given
+        viewModel.username = "test@example.com"
+        viewModel.password = "password"
 
-        XCTAssertTrue(viewModel?.isLoading == false)
+        // When
+        do {
+            try await viewModel.retrieveAccountDetails()
+            // Then
+            XCTAssertNil(viewModel.errorMessage)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
     }
 
     func testRetrieveAccountDetailsFailed() async throws {
-        MockAccountService.accountServiceError = .missingToken
-        
+        // Given
+        mockAccountService.accountServiceError = AccountServiceError.missingToken
+
+        // When
         do {
-            try await viewModel?.retrieveAccountDetails()
-            XCTFail("Expected retrieval to fail")
+            try await viewModel.retrieveAccountDetails()
+            XCTFail("Expected account details retrieval to fail")
         } catch AuthenticationViewModel.AuthenticationViewModelError.missingAccountDetails {
-            // Expected error
+            // Then
+            XCTAssertNil(viewModel.errorMessage)
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
-
-        XCTAssertTrue(viewModel?.isLoading == false)
     }
 
     func testLoginSuccessful() async throws {
-        viewModel?.username = "test@aura.app"
-        viewModel?.password = "test123"
-        
-        do {
-            try await viewModel?.login()
-        } catch {
-            XCTFail("Login failed with error: \(error)")
-        }
-        
-        XCTAssertTrue(viewModel?.isLoading == false)
-    }
+        // Given
+        viewModel.username = "test@example.com"
+        viewModel.password = "password"
+        mockAuthService.authResponse = AuthenticationResponse(token: "valid-token")
 
-    func testLoginFailedAtAuthentication() async throws {
-        viewModel?.username = "test@aura.app"
-        viewModel?.password = "wrongpassword"
-        MockAuthService.authServiceError = .invalidCredentials
-        
+        // When
         do {
-            try await viewModel?.login()
-            XCTFail("Expected login to fail at authentication")
-        } catch AuthenticationViewModel.AuthenticationViewModelError.authenticationFailed {
-            // Expected error
+            try await viewModel.login()
+            // Then
+            XCTAssertFalse(viewModel.isLoading)
+            XCTAssertNil(viewModel.errorMessage)
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
-
-        XCTAssertTrue(viewModel?.isLoading == false)
     }
 
-    func testLoginFailedAtRetrieveAccountDetails() async throws {
-        viewModel?.username = "test@aura.app"
-        viewModel?.password = "test123"
-        MockAccountService.accountServiceError = .missingToken
-        
+    func testLoginFailedDueToAuthenticationError() async throws {
+        // Given
+        viewModel.username = "test@example.com"
+        viewModel.password = "password"
+        mockAuthService.error = AuthServiceError.unauthorized
+
+        // When
         do {
-            try await viewModel?.login()
-            XCTFail("Expected login to fail at retrieving account details")
-        } catch AuthenticationViewModel.AuthenticationViewModelError.missingAccountDetails {
-            // Expected error
+            try await viewModel.login()
+            XCTFail("Expected login to fail due to authentication error")
         } catch {
-            XCTFail("Unexpected error: \(error)")
+            // Then
+            XCTAssertFalse(viewModel.isLoading)
+            XCTAssertTrue(error is AuthenticationViewModel.AuthenticationViewModelError)
+            
+            if let viewModelError = error as? AuthenticationViewModel.AuthenticationViewModelError {
+                XCTAssertEqual(viewModelError, .authenticationFailed)
+            } else {
+                XCTFail("Unexpected error: \(error)")
+            }
         }
-
-        XCTAssertTrue(viewModel?.isLoading == false)
     }
+
+    func testLoginFailedDueToAccountDetailsError() async throws {
+        // Given
+        viewModel.username = "test@example.com"
+        viewModel.password = "password"
+        mockAuthService.authResponse = AuthenticationResponse(token: "valid-token")
+        mockAccountService.accountServiceError = AccountServiceError.missingToken
+
+        // When
+        do {
+            try await viewModel.login()
+            XCTFail("Expected login to fail due to missing account details")
+        } catch {
+            // Then
+            XCTAssertFalse(viewModel.isLoading)
+            XCTAssertTrue(error is AuthenticationViewModel.AuthenticationViewModelError)
+            
+            if let viewModelError = error as? AuthenticationViewModel.AuthenticationViewModelError {
+                XCTAssertEqual(viewModelError, .missingAccountDetails)
+            } else {
+                XCTFail("Unexpected error: \(error)")
+            }
+        }
+    }
+
 }

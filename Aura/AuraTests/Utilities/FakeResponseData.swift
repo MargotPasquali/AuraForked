@@ -12,6 +12,7 @@ class FakeResponseData {
     static let responseOk = HTTPURLResponse(url: URL(string: "http://127.0.0.1:8080/")!, statusCode: 200, httpVersion: nil, headerFields: nil)!
     static let responseKo = HTTPURLResponse(url: URL(string: "http://127.0.0.1:8080/")!, statusCode: 500, httpVersion: nil, headerFields: nil)!
     static let responseServerError = HTTPURLResponse(url: URL(string: "http://127.0.0.1:8080/")!, statusCode: 500, httpVersion: nil, headerFields: nil)!
+    static let responseWithInvalidToken = HTTPURLResponse(url: URL(string: "http://127.0.0.1:8080/")!, statusCode: 401, httpVersion: nil, headerFields: nil)!
     
     // Erreur simulée
     class AuthError: Error {}

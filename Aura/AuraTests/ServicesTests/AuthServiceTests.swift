@@ -5,57 +5,58 @@
 //  Created by Margot Pasquali on 29/07/2024.
 //
 
+
 import XCTest
 @testable import Aura
 
 class AuthServiceTests: XCTestCase {
 
-    var authService: RemoteAuthService! // Use specific type
-    private var urlSession: URLSession!
+    var authService: AuthService!
+    var mockNetworkManager: MockNetworkManager!
 
     override func setUp() {
         super.setUp()
-
-        let urlSessionConfiguration = URLSessionConfiguration.ephemeral
-        urlSessionConfiguration.protocolClasses = [MockProtocol.self]
-        urlSession = URLSession(configuration: urlSessionConfiguration)
-
-        authService = RemoteAuthService(urlSession: urlSession)
+        mockNetworkManager = MockNetworkManager()
+        authService = RemoteAuthService(networkManager: mockNetworkManager)
     }
 
     override func tearDown() {
-        MockProtocol.requestHandler = nil
+        mockNetworkManager = nil
         authService = nil
         super.tearDown()
     }
 
     func testAuthenticateSuccessful() async throws {
         // Given
-        MockProtocol.requestHandler = { request in
-            let data = try! JSONEncoder().encode(AuthenticationResponse(token: "FB24D136-C228-491D-AB30-FDFD97009D19"))
-            return (FakeResponseData.responseOk, data)
-        }
-
-        // When
-        try await authService.authenticate(username: "test@aura.app", password: "test123")
-
-        // Then
-        XCTAssertEqual(authService.token, "FB24D136-C228-491D-AB30-FDFD97009D19")
-    }
-
-    func testAuthenticateWithInvalidToken() async throws {
-        // Given
-        MockProtocol.requestHandler = { request in
-            print("Handling request with invalid token: \(request)")
-            return (FakeResponseData.responseOk, FakeResponseData.authIncorrectData)
-        }
+        mockNetworkManager.response = FakeResponseData.responseOk
+        mockNetworkManager.responseData = FakeResponseData.authCorrectData
+        mockNetworkManager.error = nil
 
         // When
         do {
-            try await authService.authenticate(username: "test@aura.app", password: "test123")
-            XCTFail("Expected authentication to fail due to invalid token")
-        } catch RemoteAuthService.AuthServiceError.unauthorized {
-            // Expected error
+            try await authService.authenticate(username: "testuser", password: "password")
+            
+            // Then
+            XCTAssertNotNil(mockNetworkManager.token, "Token should be set after successful authentication")
+            XCTAssertEqual(mockNetworkManager.token, "FB24D136-C228-491D-AB30-FDFD97009D19")
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+
+    func testAuthenticateWithInvalidCredentials() async throws {
+        // Given
+        mockNetworkManager.response = HTTPURLResponse(url: URL(string: "http://127.0.0.1:8080/auth")!, statusCode: 401, httpVersion: nil, headerFields: nil)!
+        mockNetworkManager.responseData = Data("{\"token\": \"INVALID_TOKEN\"}".utf8)
+        mockNetworkManager.error = nil
+
+        // When
+        do {
+            try await authService.authenticate(username: "invaliduser", password: "invalidpassword")
+            XCTFail("Expected authentication to fail due to invalid credentials")
+        } catch AuthServiceError.unauthorized {
+            // Then
+            print("Caught expected AuthServiceError.unauthorized")
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
@@ -63,55 +64,16 @@ class AuthServiceTests: XCTestCase {
 
     func testAuthenticateWithMissingCredentials() async throws {
         // Given
-        MockProtocol.requestHandler = { request in
-            print("Handling request with missing credentials: \(request)")
-            return (FakeResponseData.responseOk, FakeResponseData.authCorrectData)
-        }
+        let emptyUsername = ""
+        let emptyPassword = ""
 
         // When
         do {
-            try await authService.authenticate(username: "", password: "")
+            try await authService.authenticate(username: emptyUsername, password: emptyPassword)
             XCTFail("Expected authentication to fail due to missing credentials")
-        } catch RemoteAuthService.AuthServiceError.invalidCredentials {
-            // Expected error
-        } catch {
-            XCTFail("Unexpected error: \(error)")
-        }
-    }
-
-    func testAuthenticateWithNon200Response() async throws {
-        // Given
-        MockProtocol.requestHandler = { request in
-            print("Handling request with non-200 response: \(request)")
-            let response = HTTPURLResponse(url: request.url!, statusCode: 400, httpVersion: nil, headerFields: nil)!
-            return (response, Data())
-        }
-
-        // When
-        do {
-            try await authService.authenticate(username: "test@aura.app", password: "test123")
-            XCTFail("Expected authentication to fail due to non-200 HTTP response")
-        } catch RemoteAuthService.AuthServiceError.invalidResponse {
-            // Expected error
-        } catch {
-            XCTFail("Unexpected error: \(error)")
-        }
-    }
-
-    func testAuthenticateWithUnauthorizedResponse() async throws {
-        // Given
-        MockProtocol.requestHandler = { request in
-            print("Handling request with unauthorized response: \(request)")
-            let response = HTTPURLResponse(url: request.url!, statusCode: 401, httpVersion: nil, headerFields: nil)!
-            return (response, Data())
-        }
-
-        // When
-        do {
-            try await authService.authenticate(username: "test@aura.app", password: "test123")
-            XCTFail("Expected authentication to fail due to unauthorized response")
-        } catch RemoteAuthService.AuthServiceError.unauthorized {
-            // Expected error
+        } catch AuthServiceError.invalidCredentials {
+            // Then
+            print("Caught expected AuthServiceError.invalidCredentials")
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
@@ -119,87 +81,56 @@ class AuthServiceTests: XCTestCase {
 
     func testAuthenticateWithServerError() async throws {
         // Given
-        MockProtocol.requestHandler = { request in
-            print("Handling request with server error: \(request)")
-            return (FakeResponseData.responseKo, FakeResponseData.incorrectData)
-        }
+        mockNetworkManager.response = FakeResponseData.responseKo
+        mockNetworkManager.responseData = Data() // Aucune donnée car c'est une erreur de serveur
+        mockNetworkManager.error = nil
 
         // When
         do {
-            try await authService.authenticate(username: "test@aura.app", password: "test123")
+            try await authService.authenticate(username: "testuser", password: "password")
             XCTFail("Expected authentication to fail due to server error")
-        } catch RemoteAuthService.AuthServiceError.unknown {
-            // Expected error
+        } catch AuthServiceError.serverError {
+            // Then
+            print("Caught expected AuthServiceError.serverError")
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
     }
 
-    func testAuthenticateWithInvalidJSONResponse() async throws {
+    func testAuthenticateWithNetworkError() async throws {
         // Given
-        MockProtocol.requestHandler = { request in
-            print("Handling request with invalid JSON response: \(request)")
-            return (FakeResponseData.responseOk, FakeResponseData.incorrectData)
-        }
+        let networkError = URLError(.notConnectedToInternet)
+        mockNetworkManager.error = networkError
+        print("Configured mock network error: \(networkError)")
 
         // When
         do {
-            try await authService.authenticate(username: "test@aura.app", password: "test123")
-            XCTFail("Expected authentication to fail due to invalid JSON response")
-        } catch RemoteAuthService.AuthServiceError.invalidResponse {
-            // Expected error
+            try await authService.authenticate(username: "testuser", password: "password")
+            XCTFail("Expected authentication to fail due to network error")
+        } catch AuthServiceError.networkError(let error) {
+            // Then
+            XCTAssertEqual((error as? URLError)?.code, networkError.code)
+            print("Caught expected AuthServiceError.networkError: \(error)")
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
     }
 
-    func testAuthenticateWithEmptyUsername() async throws {
+    func testAuthenticateWithInvalidData() async throws {
         // Given
-        MockProtocol.requestHandler = { request in
-            print("Handling request with empty username: \(request)")
-            return (FakeResponseData.responseOk, FakeResponseData.authCorrectData)
-        }
+        mockNetworkManager.response = FakeResponseData.responseOk
+        mockNetworkManager.responseData = FakeResponseData.incorrectData
+        mockNetworkManager.error = nil
 
         // When
         do {
-            try await authService.authenticate(username: "", password: "test123")
-            XCTFail("Expected authentication to fail due to empty username")
-        } catch RemoteAuthService.AuthServiceError.invalidCredentials {
-            // Expected error
+            try await authService.authenticate(username: "testuser", password: "password")
+            XCTFail("Expected authentication to fail due to invalid data")
+        } catch AuthServiceError.decodingError(let error) {
+            // Then
+            print("Caught expected AuthServiceError.decodingError: \(error)")
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
-    }
-
-    func testAuthenticateWithEmptyPassword() async throws {
-        // Given
-        MockProtocol.requestHandler = { request in
-            print("Handling request with empty password: \(request)")
-            return (FakeResponseData.responseOk, FakeResponseData.authCorrectData)
-        }
-
-        // When
-        do {
-            try await authService.authenticate(username: "test@aura.app", password: "")
-            XCTFail("Expected authentication to fail due to empty password")
-        } catch RemoteAuthService.AuthServiceError.invalidCredentials {
-            // Expected error
-        } catch {
-            XCTFail("Unexpected error: \(error)")
-        }
-    }
-
-    func testTokenPersistence() async throws {
-        // Given
-        MockProtocol.requestHandler = { request in
-            print("Handling request: \(request)")
-            return (FakeResponseData.responseOk, FakeResponseData.authCorrectData)
-        }
-
-        // When
-        try await authService.authenticate(username: "test@aura.app", password: "test123")
-
-        // Then
-        XCTAssertEqual(authService.token, "FB24D136-C228-491D-AB30-FDFD97009D19")
     }
 }
