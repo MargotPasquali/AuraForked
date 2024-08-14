@@ -7,14 +7,29 @@
 
 import SwiftUI
 
+// MARK: - MoneyTransferView
+
+/// Vue pour l'envoi d'argent à un destinataire.
+///
+/// Cette vue permet à l'utilisateur de saisir les informations du destinataire et le montant à transférer, puis d'initier le transfert.
 struct MoneyTransferView: View {
+    
+    // MARK: - Observed Object
+    
     @ObservedObject var viewModel = MoneyTransferViewModel(accountDetailViewModel: AccountDetailViewModel())
+    
+    // MARK: - State Properties
     
     @State private var animationScale: CGFloat = 1.0
     
+    // MARK: - Body
+    
     var body: some View {
         VStack(spacing: 20) {
-            // Adding a fun header image
+            
+            // MARK: - Header Image
+            
+            // Ajout d'une image d'en-tête animée
             Image(systemName: "arrow.right.arrow.left.circle.fill")
                 .resizable()
                 .scaledToFit()
@@ -28,9 +43,13 @@ struct MoneyTransferView: View {
                     }
                 }
             
+            // MARK: - Title
+            
             Text("Send Money!")
                 .font(.largeTitle)
                 .fontWeight(.heavy)
+            
+            // MARK: - Recipient Input
             
             VStack(alignment: .leading) {
                 Text("Recipient (Email or Phone)")
@@ -42,6 +61,8 @@ struct MoneyTransferView: View {
                     .keyboardType(.emailAddress)
             }
             
+            // MARK: - Amount Input
+            
             VStack(alignment: .leading) {
                 Text("Amount (€)")
                     .font(.headline)
@@ -51,6 +72,8 @@ struct MoneyTransferView: View {
                     .cornerRadius(8)
                     .keyboardType(.decimalPad)
             }
+            
+            // MARK: - Send Button
             
             Button(action: {
                 Task {
@@ -68,7 +91,8 @@ struct MoneyTransferView: View {
             }
             .buttonStyle(PlainButtonStyle())
             
-            // Message
+            // MARK: - Transfer Message
+            
             if !viewModel.transferMessage.isEmpty {
                 Text(viewModel.transferMessage)
                     .padding(.top, 20)
@@ -79,11 +103,12 @@ struct MoneyTransferView: View {
         }
         .padding()
         .onTapGesture {
-            self.endEditing(true)  // This will dismiss the keyboard when tapping outside
+            self.endEditing(true)  // Cela permettra de cacher le clavier en tapant à l'extérieur
         }
     }
 }
 
+// MARK: - Preview
 
 #Preview {
     MoneyTransferView()

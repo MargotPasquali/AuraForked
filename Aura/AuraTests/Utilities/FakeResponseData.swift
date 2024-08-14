@@ -7,18 +7,39 @@
 
 import Foundation
 
+// MARK: - FakeResponseData
+
+/// Classe contenant des données de réponse simulées pour les tests.
+///
+/// Cette classe fournit des réponses HTTP, des erreurs, et des données de réponse JSON simulées,
+/// permettant de tester différents scénarios sans effectuer de véritables requêtes réseau.
 class FakeResponseData {
-    // Réponses HTTP simulées
+    
+    // MARK: - Simulated HTTP Responses
+    
+    /// Réponse HTTP simulée pour une requête réussie.
     static let responseOk = HTTPURLResponse(url: URL(string: "http://127.0.0.1:8080/")!, statusCode: 200, httpVersion: nil, headerFields: nil)!
+    
+    /// Réponse HTTP simulée pour une erreur interne du serveur.
     static let responseKo = HTTPURLResponse(url: URL(string: "http://127.0.0.1:8080/")!, statusCode: 500, httpVersion: nil, headerFields: nil)!
+    
+    /// Réponse HTTP simulée pour une erreur de serveur.
     static let responseServerError = HTTPURLResponse(url: URL(string: "http://127.0.0.1:8080/")!, statusCode: 500, httpVersion: nil, headerFields: nil)!
+    
+    /// Réponse HTTP simulée pour une requête avec un jeton invalide.
     static let responseWithInvalidToken = HTTPURLResponse(url: URL(string: "http://127.0.0.1:8080/")!, statusCode: 401, httpVersion: nil, headerFields: nil)!
     
-    // Erreur simulée
+    // MARK: - Simulated Error
+    
+    /// Classe représentant une erreur d'authentification simulée.
     class AuthError: Error {}
+    
+    /// Erreur simulée utilisée pour les tests.
     static let error = AuthError()
     
-    // Données de réponse correctes simulées à partir d'un fichier JSON
+    // MARK: - Simulated Correct Data
+    
+    /// Données de réponse correctes simulées pour une authentification réussie.
     static var authCorrectData: Data {
         let json = """
         {
@@ -28,6 +49,7 @@ class FakeResponseData {
         return Data(json.utf8)
     }
     
+    /// Données de réponse incorrectes simulées pour une authentification échouée (jeton invalide).
     static var authIncorrectData: Data {
         let json = """
         {
@@ -37,6 +59,7 @@ class FakeResponseData {
         return Data(json.utf8)
     }
     
+    /// Données de réponse correctes simulées pour la récupération des détails du compte.
     static var logAccountCorrectData: Data {
         let json = """
         {
@@ -50,6 +73,8 @@ class FakeResponseData {
         return Data(json.utf8)
     }
     
-    // Données de réponse incorrectes simulées
+    // MARK: - Simulated Incorrect Data
+    
+    /// Données de réponse incorrectes simulées (JSON incorrect).
     static let incorrectData = "incorrect json".data(using: .utf8)!
 }

@@ -5,33 +5,45 @@
 //  Created by Margot Pasquali on 29/07/2024.
 //
 
-
 import XCTest
 @testable import Aura
 
-class AuthServiceTests: XCTestCase {
+// MARK: - AuthServiceTests
 
+/// Tests unitaires pour `AuthService`.
+///
+/// Cette classe de tests vérifie les différentes fonctionnalités du `AuthService`,
+/// telles que l'authentification réussie, la gestion des erreurs de réseau, et la gestion des réponses incorrectes.
+class AuthServiceTests: XCTestCase {
+    
+    // MARK: - Properties
+    
     var authService: AuthService!
     var mockNetworkManager: MockNetworkManager!
-
+    
+    // MARK: - Setup & Teardown
+    
     override func setUp() {
         super.setUp()
         mockNetworkManager = MockNetworkManager()
         authService = RemoteAuthService(networkManager: mockNetworkManager)
     }
-
+    
     override func tearDown() {
         mockNetworkManager = nil
         authService = nil
         super.tearDown()
     }
-
+    
+    // MARK: - Test Cases
+    
+    /// Teste une authentification réussie.
     func testAuthenticateSuccessful() async throws {
         // Given
         mockNetworkManager.response = FakeResponseData.responseOk
         mockNetworkManager.responseData = FakeResponseData.authCorrectData
         mockNetworkManager.error = nil
-
+        
         // When
         do {
             try await authService.authenticate(username: "testuser", password: "password")
@@ -43,13 +55,14 @@ class AuthServiceTests: XCTestCase {
             XCTFail("Unexpected error: \(error)")
         }
     }
-
+    
+    /// Teste l'authentification avec des identifiants invalides.
     func testAuthenticateWithInvalidCredentials() async throws {
         // Given
         mockNetworkManager.response = HTTPURLResponse(url: URL(string: "http://127.0.0.1:8080/auth")!, statusCode: 401, httpVersion: nil, headerFields: nil)!
         mockNetworkManager.responseData = Data("{\"token\": \"INVALID_TOKEN\"}".utf8)
         mockNetworkManager.error = nil
-
+        
         // When
         do {
             try await authService.authenticate(username: "invaliduser", password: "invalidpassword")
@@ -61,12 +74,13 @@ class AuthServiceTests: XCTestCase {
             XCTFail("Unexpected error: \(error)")
         }
     }
-
+    
+    /// Teste l'authentification avec des identifiants manquants.
     func testAuthenticateWithMissingCredentials() async throws {
         // Given
         let emptyUsername = ""
         let emptyPassword = ""
-
+        
         // When
         do {
             try await authService.authenticate(username: emptyUsername, password: emptyPassword)
@@ -78,13 +92,14 @@ class AuthServiceTests: XCTestCase {
             XCTFail("Unexpected error: \(error)")
         }
     }
-
+    
+    /// Teste l'authentification avec une erreur de serveur.
     func testAuthenticateWithServerError() async throws {
         // Given
         mockNetworkManager.response = FakeResponseData.responseKo
         mockNetworkManager.responseData = Data() // Aucune donnée car c'est une erreur de serveur
         mockNetworkManager.error = nil
-
+        
         // When
         do {
             try await authService.authenticate(username: "testuser", password: "password")
@@ -96,13 +111,14 @@ class AuthServiceTests: XCTestCase {
             XCTFail("Unexpected error: \(error)")
         }
     }
-
+    
+    /// Teste l'authentification avec une erreur de réseau.
     func testAuthenticateWithNetworkError() async throws {
         // Given
         let networkError = URLError(.notConnectedToInternet)
         mockNetworkManager.error = networkError
         print("Configured mock network error: \(networkError)")
-
+        
         // When
         do {
             try await authService.authenticate(username: "testuser", password: "password")
@@ -115,13 +131,14 @@ class AuthServiceTests: XCTestCase {
             XCTFail("Unexpected error: \(error)")
         }
     }
-
+    
+    /// Teste l'authentification avec des données incorrectes.
     func testAuthenticateWithInvalidData() async throws {
         // Given
         mockNetworkManager.response = FakeResponseData.responseOk
         mockNetworkManager.responseData = FakeResponseData.incorrectData
         mockNetworkManager.error = nil
-
+        
         // When
         do {
             try await authService.authenticate(username: "testuser", password: "password")

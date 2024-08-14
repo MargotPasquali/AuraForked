@@ -7,13 +7,24 @@
 
 import SwiftUI
 
-struct AllTransactionsView: View {
-    @Binding var showAllTransactions: Bool
+// MARK: - AllTransactionsView
 
+/// Vue permettant à l'utilisateur d'afficher plus ou moins de transactions.
+///
+/// Cette vue contient un bouton qui permet de basculer entre l'affichage complet des transactions et l'affichage limité.
+struct AllTransactionsView: View {
+    
+    // MARK: - Binding Properties
+    
+    @Binding var showAllTransactions: Bool
+    
+    // MARK: - Body
+    
     var body: some View {
         HStack {
             Spacer()
             Button(action: {
+                // Basculer l'affichage des transactions
                 showAllTransactions.toggle()
             }) {
                 HStack {
@@ -29,6 +40,8 @@ struct AllTransactionsView: View {
         }
     }
 }
+
+// MARK: - Preview
 
 #Preview {
     AllTransactionsView(showAllTransactions: .constant(false))

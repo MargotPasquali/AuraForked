@@ -8,12 +8,21 @@
 import XCTest
 @testable import Aura
 
-final class AuthenticationViewModelTests: XCTestCase {
+// MARK: - AuthenticationViewModelTests
 
+/// Tests unitaires pour `AuthenticationViewModel`.
+///
+/// Cette classe de tests vérifie les différentes fonctionnalités du `AuthenticationViewModel`, telles que l'authentification et la récupération des détails du compte.
+final class AuthenticationViewModelTests: XCTestCase {
+    
+    // MARK: - Properties
+    
     var viewModel: AuthenticationViewModel!
     var mockAuthService: MockAuthService!
     var mockAccountService: MockAccountService!
-
+    
+    // MARK: - Setup & Teardown
+    
     override func setUp() {
         super.setUp()
         let mockNetworkManager = MockNetworkManager()
@@ -21,20 +30,23 @@ final class AuthenticationViewModelTests: XCTestCase {
         mockAccountService = MockAccountService()
         viewModel = AuthenticationViewModel(authService: mockAuthService, accountService: mockAccountService)
     }
-
+    
     override func tearDown() {
         viewModel = nil
         mockAuthService = nil
         mockAccountService = nil
         super.tearDown()
     }
-
+    
+    // MARK: - Test Cases
+    
+    /// Teste une authentification réussie.
     func testPerformAuthenticationSuccessful() async throws {
         // Given
         viewModel.username = "test@example.com"
         viewModel.password = "password"
         mockAuthService.authResponse = AuthenticationResponse(token: "valid-token")
-
+        
         // When
         do {
             try await viewModel.performAuthentication()
@@ -44,13 +56,14 @@ final class AuthenticationViewModelTests: XCTestCase {
             XCTFail("Unexpected error: \(error)")
         }
     }
-
+    
+    /// Teste une authentification échouée.
     func testPerformAuthenticationFailed() async throws {
         // Given
         viewModel.username = "test@example.com"
         viewModel.password = "password"
         mockAuthService.error = AuthServiceError.unauthorized
-
+        
         // When
         do {
             try await viewModel.performAuthentication()
@@ -62,12 +75,13 @@ final class AuthenticationViewModelTests: XCTestCase {
             XCTFail("Unexpected error: \(error)")
         }
     }
-
+    
+    /// Teste la récupération réussie des détails du compte.
     func testRetrieveAccountDetailsSuccessful() async throws {
         // Given
         viewModel.username = "test@example.com"
         viewModel.password = "password"
-
+        
         // When
         do {
             try await viewModel.retrieveAccountDetails()
@@ -77,11 +91,12 @@ final class AuthenticationViewModelTests: XCTestCase {
             XCTFail("Unexpected error: \(error)")
         }
     }
-
+    
+    /// Teste l'échec de la récupération des détails du compte.
     func testRetrieveAccountDetailsFailed() async throws {
         // Given
         mockAccountService.accountServiceError = AccountServiceError.missingToken
-
+        
         // When
         do {
             try await viewModel.retrieveAccountDetails()
@@ -93,13 +108,14 @@ final class AuthenticationViewModelTests: XCTestCase {
             XCTFail("Unexpected error: \(error)")
         }
     }
-
+    
+    /// Teste un processus de connexion réussi.
     func testLoginSuccessful() async throws {
         // Given
         viewModel.username = "test@example.com"
         viewModel.password = "password"
         mockAuthService.authResponse = AuthenticationResponse(token: "valid-token")
-
+        
         // When
         do {
             try await viewModel.login()
@@ -110,13 +126,14 @@ final class AuthenticationViewModelTests: XCTestCase {
             XCTFail("Unexpected error: \(error)")
         }
     }
-
+    
+    /// Teste un échec de connexion dû à une erreur d'authentification.
     func testLoginFailedDueToAuthenticationError() async throws {
         // Given
         viewModel.username = "test@example.com"
         viewModel.password = "password"
         mockAuthService.error = AuthServiceError.unauthorized
-
+        
         // When
         do {
             try await viewModel.login()
@@ -133,14 +150,15 @@ final class AuthenticationViewModelTests: XCTestCase {
             }
         }
     }
-
+    
+    /// Teste un échec de connexion dû à une erreur lors de la récupération des détails du compte.
     func testLoginFailedDueToAccountDetailsError() async throws {
         // Given
         viewModel.username = "test@example.com"
         viewModel.password = "password"
         mockAuthService.authResponse = AuthenticationResponse(token: "valid-token")
         mockAccountService.accountServiceError = AccountServiceError.missingToken
-
+        
         // When
         do {
             try await viewModel.login()
@@ -157,5 +175,5 @@ final class AuthenticationViewModelTests: XCTestCase {
             }
         }
     }
-
+    
 }
